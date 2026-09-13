@@ -1,12 +1,12 @@
 /* sw.js — localXhost-bgRemove Service Worker */
 
-const CACHE_NAME = 'bgremove-v1';
+const CACHE_NAME = 'bgremove-v2';
 
 /* الملفات التي سيتم تخزينها مسبقًا */
 const PRECACHE_URLS = [
   '/localXhost/tool/bgremove/index.html',
   '/localXhost/tool/bgremove/manifest.json',
-  '/localXhost/asset/images/localxhost16-9.png'
+  '/localXhost/tool/bgremove/icon.jpg'
 ];
 
 /* التثبيت: تخزين الملفات الأساسية */
@@ -33,7 +33,6 @@ self.addEventListener('activate', (event) => {
 
 /* الجلب: استراتيجية Cache-First مع fallback للشبكة */
 self.addEventListener('fetch', (event) => {
-  /* تجاهل الطلبات غير GET */
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
@@ -41,7 +40,6 @@ self.addEventListener('fetch', (event) => {
       if (cached) return cached;
 
       return fetch(event.request).then((response) => {
-        /* لا تخزن الاستجابات غير الصالحة */
         if (!response || response.status !== 200 || response.type === 'opaque') {
           return response;
         }
@@ -53,7 +51,6 @@ self.addEventListener('fetch', (event) => {
 
         return response;
       }).catch(() => {
-        /* عند فشل الشبكة وطلب التنقل، أعد index.html */
         if (event.request.mode === 'navigate') {
           return caches.match('/localXhost/tool/bgremove/index.html');
         }
