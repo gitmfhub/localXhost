@@ -1,0 +1,25 @@
+{
+  "name": "localXhost-bgRemove",
+  "short_name": "bgRemove",
+  "description": "Remove image backgrounds offline, right in your browser.",
+  "start_url": "/localXhost/tool/bgremove/index.html",
+  "scope": "/localXhost/tool/bgremove/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/localXhost/asset/images/localxhost16-9.png",
+      "sizes": "320x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/localXhost/asset/images/localxhost16-9.png",
+      "sizes": "320x180",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
