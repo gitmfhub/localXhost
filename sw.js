@@ -1,54 +1,43 @@
 const CACHE_NAME = 'localxhost-cache-v1';
-const assetsToCache = [
+const urlsToCache = [
   '/',
-  'https://gitmfhub.github.io/localXhost/asset/images/localxhost1-1.png'
+  'https://gitmfhub.github.io/localXhost/manifest.json',
+  'https://gitmfhub.github.io/localXhost/asset/images/localxhost1-1.jpg'
 ];
 
-// تثبيت الـ Service Worker وتخزين الأصول الأساسية
+// تثبيت الـ Service Worker وحفظ الملفات الأساسية في الكاش
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        return cache.addAll(assetsToCache);
+        return cache.addAll(urlsToCache);
       })
-      .then(() => self.skipWaiting())
   );
+  self.skipWaiting();
 });
 
-// تفعيل وتطهير التخزين المؤقت القديم
+// تفعيل الخدمة وتنظيف الكاش القديم
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
           }
         })
       );
-    }).then(() => self.clients.claim())
+    })
   );
+  self.clients.claim();
 });
 
-// اعتراض الطلبات للعمل أوفلاين (Network First falling back to Cache)
+// اعتراض الطلبات لتشغيل التطبيق بسلاسة
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        return caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, networkResponse.clone());
-          return networkResponse;
-        });
-      })
-      .catch(() => {
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          if (event.request.mode === 'navigate') {
-            return caches.match('/');
-          }
-        });
+    caches.match(event.request)
+      .then((response) => {
+        return response || fetch(event.request);
       })
   );
 });
