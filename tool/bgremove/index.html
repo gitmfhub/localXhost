@@ -31,8 +31,34 @@
   /* ---------- header ---------- */
   header{display:flex;align-items:center;gap:14px;margin-bottom:26px}
   .logo{height:42px;width:auto;display:block;border-radius:6px}
+  .headText{flex:1;min-width:0}
   h1{margin:0;font-size:17px;font-weight:600;letter-spacing:.2px}
   .sub{margin:3px 0 0;font-size:12px;color:#6b6b6b}
+
+  /* ---------- install button ---------- */
+  .install{
+    flex:none;
+    background:transparent;color:#e9e9e9;
+    border:1px solid #2a2a2a;border-radius:8px;
+    padding:7px 12px;font-size:12px;font-weight:600;
+    cursor:pointer;transition:background .15s,border-color .15s;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .install:hover{background:#141414;border-color:#3a3a3a}
+  .install svg{width:13px;height:13px;fill:currentColor}
+
+  /* ---------- iOS hint ---------- */
+  .iosHint{
+    margin:0 0 18px;
+    padding:11px 14px;
+    background:#0a0a0a;border:1px solid #1a1a1a;border-radius:10px;
+    font-size:12px;color:#9a9a9a;line-height:1.5;
+  }
+  .iosHint b{color:#e9e9e9;font-weight:600}
+  .iosHint button{
+    background:none;border:0;color:#3ea6ff;font:inherit;cursor:pointer;
+    padding:0;margin-left:6px;text-decoration:underline;
+  }
 
   /* ---------- drop zone ---------- */
   .drop{
@@ -92,6 +118,15 @@
   .dl:disabled{opacity:.4;cursor:default}
 
   #status{font-size:12px;color:#6b6b6b;margin:12px 0 0;min-height:16px}
+
+  /* ---------- mobile tweaks ---------- */
+  @media (max-width:520px){
+    .wrap{padding:20px 14px 48px}
+    .logo{height:34px}
+    h1{font-size:15px}
+    .sub{font-size:11px}
+    .install{padding:6px 10px;font-size:11px}
+  }
 </style>
 </head>
 <body>
@@ -101,11 +136,21 @@
     <img class="logo" alt="localXhost"
          src="https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg"
          onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22320%22 height=%22180%22><rect width=%22320%22 height=%22180%22 fill=%22%23000000%22/><text x=%22160%22 y=%22102%22 font-family=%22Arial,Helvetica,sans-serif%22 font-size=%2230%22 fill=%22%23ffffff%22 text-anchor=%22middle%22>localXhost</text></svg>'">
-    <div>
+    <div class="headText">
       <h1>localXhost-bgRemove</h1>
       <p class="sub">Remove image backgrounds — 100% offline, in your browser.</p>
     </div>
+    <button class="install" id="installBtn" type="button" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v9.59l3.3-3.3a1 1 0 1 1 1.4 1.42l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 1 1 1.4-1.42l3.3 3.3V4a1 1 0 0 1 1-1zM4 18a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1z"/></svg>
+      Install App
+    </button>
   </header>
+
+  <div class="iosHint" id="iosHint" hidden>
+    <b>Install on iPhone / iPad:</b> tap the Share button in Safari, then choose
+    <b>“Add to Home Screen”</b>.
+    <button type="button" id="iosDismiss">Got it</button>
+  </div>
 
   <label class="drop" id="drop">
     <input type="file" id="file" accept="image/png,image/jpeg,image/jpg" multiple>
@@ -425,8 +470,76 @@
 })();
 </script>
 
-<!-- PWA: register service worker -->
+<!-- ============================================================== -->
+<!-- PWA: install prompt + service worker registration               -->
+<!-- ============================================================== -->
 <script>
+(function () {
+  "use strict";
+
+  var installBtn = document.getElementById('installBtn');
+  var iosHint    = document.getElementById('iosHint');
+  var iosDismiss = document.getElementById('iosDismiss');
+
+  var deferredPrompt = null;
+  var isStandalone   =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+
+  /* ---------- detect iOS Safari ---------- */
+  var ua = window.navigator.userAgent || '';
+  var isIOS = /iPad|iPhone|iPod/.test(ua) ||
+              (ua.indexOf('Mac') > -1 && 'ontouchend' in document);
+  var isSafari = /^((?!chrome|android|crios|fxios|edgios).)*safari/i.test(ua);
+
+  /* ---------- 1. capture install prompt ---------- */
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();      // stop the default mini-infobar
+    deferredPrompt = e;      // save for later
+    if (!isStandalone) {
+      installBtn.hidden = false;
+    }
+  });
+
+  /* ---------- 2. trigger install on button click ---------- */
+  installBtn.addEventListener('click', function () {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+
+    deferredPrompt.userChoice.then(function (choice) {
+      console.log('Install choice:', choice.outcome);
+      deferredPrompt = null;
+      installBtn.hidden = true;
+    }).catch(function (err) {
+      console.error('Install prompt error:', err);
+    });
+  });
+
+  /* ---------- 3. hide button once installed ---------- */
+  window.addEventListener('appinstalled', function () {
+    console.log('PWA installed successfully.');
+    deferredPrompt = null;
+    installBtn.hidden = true;
+    iosHint.hidden = true;
+  });
+
+  /* ---------- 4. iOS Safari: show manual hint ---------- */
+  if (isIOS && isSafari && !isStandalone) {
+    var dismissed = false;
+    try { dismissed = localStorage.getItem('iosHintDismissed') === '1'; } catch (e) {}
+
+    if (!dismissed) {
+      iosHint.hidden = false;
+    }
+
+    iosDismiss.addEventListener('click', function () {
+      iosHint.hidden = true;
+      try { localStorage.setItem('iosHintDismissed', '1'); } catch (e) {}
+    });
+  }
+
+  /* ---------- 5. register the service worker ---------- */
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
       navigator.serviceWorker
@@ -437,6 +550,7 @@
         .catch(function (err) { console.error('SW registration failed:', err); });
     });
   }
+})();
 </script>
 </body>
 </html>
