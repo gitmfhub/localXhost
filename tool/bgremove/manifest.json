@@ -1,5 +1,5 @@
 {
-  "name": "localXhost-bgRemove",
+  "name": "bgRemove",
   "short_name": "bgRemove",
   "description": "Remove image backgrounds offline, right in your browser.",
   "start_url": "/localXhost/tool/bgremove/index.html",
