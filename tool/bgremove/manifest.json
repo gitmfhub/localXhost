@@ -1,6 +1,6 @@
 {
-  "name": "BgRemove — localXhost",
-  "short_name": "BgRemove",
+  "name": "BgRemove-lxh",
+  "short_name": "BgRemove-lxh",
   "description": "Remove image backgrounds locally in your browser. One File. Full Power.",
   "start_url": "./index.html",
   "scope": "./",
@@ -33,9 +33,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Open Gallery",
-      "short_name": "Gallery",
-      "url": "./index.html?action=gallery",
+      "name": "Add Image",
+      "short_name": "Add",
+      "url": "./index.html?action=add",
       "icons": [
         {
           "src": "https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg",
