@@ -1,25 +1,25 @@
 {
-  "name": "BgRemove",
+  "name": "BgRemove — localXhost",
   "short_name": "BgRemove",
-  "description": "Remove image backgrounds offline, right in your browser.",
-  "start_url": "/localXhost/tool/bgremove/index.html",
-  "scope": "/localXhost/tool/bgremove/",
+  "description": "Remove image backgrounds instantly, right in your browser.",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
   "orientation": "any",
+  "background_color": "#0c0d10",
+  "theme_color": "#0c0d10",
   "icons": [
     {
-      "src": "/localXhost/tool/bgremove/icon.jpg",
-      "sizes": "512x512",
+      "src": "https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg",
+      "sizes": "192x192",
       "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "/localXhost/tool/bgremove/icon.jpg",
+      "src": "https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
-      "purpose": "maskable"
+      "purpose": "any"
     }
   ]
 }
