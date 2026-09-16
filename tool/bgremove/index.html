@@ -2,13 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BgRemove — localXhost</title>
-<meta name="description" content="Remove image backgrounds instantly, right in your browser.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0c0d10">
+<meta name="description" content="Remove image backgrounds locally in your browser. One File. Full Power.">
+<title>BgRemove — localXhost</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg">
+<link rel="icon" type="image/jpeg" href="https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg">
 <link rel="apple-touch-icon" href="https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BgRemove">
 <style>
   :root{
     --bg:#0c0d10;
@@ -19,6 +22,7 @@
     --text-muted:#8b8f98;
     --accent:#b6ff6e;
     --accent-ink:#0c0d10;
+    --accent-orange:#ff7900;
     --danger:#ff7a59;
     --radius:14px;
     --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
@@ -30,6 +34,7 @@
     color:var(--text);
     font-family:var(--font);
     overflow:hidden;
+    -webkit-tap-highlight-color:transparent;
   }
   .checker{
     background-color:#1a1c20;
@@ -47,42 +52,70 @@
     display:flex;
     flex-direction:column;
   }
-  .topbar{
+
+  /* ===== Floating Logo (top-right) ===== */
+  .lxh-logo-wrap{
+    position:fixed;
+    top:16px;
+    right:16px;
+    z-index:50;
+    pointer-events:none;
+    opacity:0.95;
+    filter:drop-shadow(0 6px 24px rgba(0,0,0,.45));
+    animation:lxhFadeIn .6s ease both;
+  }
+  .lxh-logo{
+    width:35vw;
+    min-width:190px;
+    line-height:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    pointer-events:auto;
+  }
+  .lxh-logo h1{
     display:flex;
     align-items:center;
-    justify-content:space-between;
-    padding:20px 28px;
-    z-index:2;
-    gap:16px;
-    flex-wrap:wrap;
+    margin:0;
+    font-size:clamp(26px,4vw,42px);
+    font-weight:800;
+    letter-spacing:-1.8px;
+    color:var(--text);
   }
-  .brand{
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
-  .brand img{
-    height:28px;
-    width:auto;
-    display:block;
-    border-radius:6px;
-  }
-  .brand-name{
-    font-weight:700;
-    font-size:18px;
-    letter-spacing:-0.01em;
-  }
-  .brand-name span{
+  .lxh-logo .blog-description{
+    margin:10px 0 0;
+    font-size:clamp(10px,1.5vw,14.5px);
+    font-weight:500;
+    letter-spacing:1.5px;
+    opacity:.8;
+    text-decoration:underline;
+    text-transform:uppercase;
     color:var(--text-muted);
-    font-weight:400;
-    font-size:13px;
-    margin-left:6px;
   }
+  @keyframes lxhFadeIn{
+    from{opacity:0;transform:translateY(-10px);}
+    to{opacity:.95;transform:translateY(0);}
+  }
+  @media (max-width:560px){
+    .lxh-logo{width:auto;min-width:0;}
+    .lxh-logo h1{font-size:22px;letter-spacing:-1.2px;}
+    .lxh-logo .blog-description{font-size:9px;letter-spacing:1px;margin-top:6px;}
+  }
+
+  /* ===== Toolbar ===== */
   .toolbar{
     display:flex;
     align-items:center;
     gap:10px;
     flex-wrap:wrap;
+    padding:18px 24px;
+    z-index:5;
+    justify-content:flex-start;
+    max-width:calc(100% - 220px);
+  }
+  @media (max-width:560px){
+    .toolbar{max-width:100%;padding:14px 16px;justify-content:center;}
   }
   .sensitivity{
     display:flex;
@@ -133,33 +166,20 @@
     cursor:pointer;
     transition:transform .15s ease, background .15s ease, border-color .15s ease;
   }
-  button:hover{
-    background:var(--surface-2);
-    border-color:#3a3e46;
-  }
-  button:active{
-    transform:scale(0.97);
-  }
-  button:focus-visible{
-    outline:2px solid var(--accent);
-    outline-offset:2px;
-  }
+  button:hover{background:var(--surface-2);border-color:#3a3e46;}
+  button:active{transform:scale(0.97);}
+  button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   button.primary{
     background:var(--accent);
     color:var(--accent-ink);
     border-color:var(--accent);
     font-weight:600;
   }
-  button.primary:hover{
-    filter:brightness(1.06);
-  }
-  button.danger{
-    color:var(--danger);
-  }
-  button:disabled{
-    opacity:0.4;
-    cursor:not-allowed;
-  }
+  button.primary:hover{filter:brightness(1.06);}
+  button.danger{color:var(--danger);}
+  button:disabled{opacity:0.4;cursor:not-allowed;}
+
+  /* ===== Canvas area ===== */
   .canvas{
     flex:1;
     display:flex;
@@ -167,13 +187,15 @@
     justify-content:center;
     position:relative;
     padding:24px;
+    min-height:0;
   }
   .empty-state{
     text-align:center;
     max-width:420px;
+    padding:0 8px;
   }
   .empty-state h1{
-    font-size:34px;
+    font-size:clamp(26px,4.5vw,34px);
     line-height:1.15;
     font-weight:700;
     margin:0 0 14px;
@@ -196,25 +218,26 @@
   }
   .image-frame canvas{
     max-width:100%;
-    max-height:calc(100vh - 140px);
+    max-height:calc(100vh - 160px);
     width:auto;
     height:auto;
     display:block;
   }
+
+  /* ===== Overlays ===== */
   .overlay{
     position:fixed;
     inset:0;
     background:rgba(8,9,11,0.72);
     backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
     display:none;
     align-items:center;
     justify-content:center;
-    z-index:10;
+    z-index:100;
     padding:20px;
   }
-  .overlay.open{
-    display:flex;
-  }
+  .overlay.open{display:flex;}
   .panel{
     background:var(--surface);
     border:1px solid var(--border);
@@ -222,6 +245,8 @@
     width:100%;
     max-width:560px;
     padding:26px;
+    max-height:90vh;
+    overflow:auto;
   }
   .panel-head{
     display:flex;
@@ -229,11 +254,7 @@
     justify-content:space-between;
     margin-bottom:18px;
   }
-  .panel-head h2{
-    font-size:19px;
-    font-weight:700;
-    margin:0;
-  }
+  .panel-head h2{font-size:19px;font-weight:700;margin:0;}
   .icon-btn{
     background:transparent;
     border:none;
@@ -242,10 +263,7 @@
     line-height:1;
     padding:4px 8px;
   }
-  .icon-btn:hover{
-    color:var(--text);
-    background:transparent;
-  }
+  .icon-btn:hover{color:var(--text);background:transparent;}
   .dropzone{
     border:1.5px dashed var(--border);
     border-radius:12px;
@@ -258,20 +276,16 @@
     border-color:var(--accent);
     background:rgba(182,255,110,0.05);
   }
-  .dropzone p{
-    margin:0;
-    color:var(--text-muted);
-    font-size:14px;
-  }
-  .dropzone p strong{
-    color:var(--text);
-    font-weight:500;
-  }
+  .dropzone p{margin:0;color:var(--text-muted);font-size:14px;}
+  .dropzone p strong{color:var(--text);font-weight:500;}
   .thumb-grid{
     display:grid;
     grid-template-columns:repeat(4,1fr);
     gap:10px;
     margin-top:18px;
+  }
+  @media (max-width:480px){
+    .thumb-grid{grid-template-columns:repeat(3,1fr);}
   }
   .thumb{
     aspect-ratio:1/1;
@@ -280,16 +294,10 @@
     cursor:pointer;
     border:1px solid var(--border);
     position:relative;
+    background:var(--surface-2);
   }
-  .thumb img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    display:block;
-  }
-  .thumb:hover{
-    border-color:var(--accent);
-  }
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .thumb:hover{border-color:var(--accent);}
   .thumb-empty{
     grid-column:1/-1;
     color:var(--text-muted);
@@ -297,16 +305,8 @@
     text-align:center;
     padding:18px 0 4px;
   }
-  .loading-panel{
-    width:100%;
-    max-width:340px;
-    text-align:center;
-  }
-  .loading-panel p{
-    font-size:14px;
-    color:var(--text-muted);
-    margin:0 0 16px;
-  }
+  .loading-panel{width:100%;max-width:340px;text-align:center;}
+  .loading-panel p{font-size:14px;color:var(--text-muted);margin:0 0 16px;}
   .progress-track{
     height:6px;
     border-radius:6px;
@@ -326,34 +326,124 @@
     color:var(--text-muted);
     font-variant-numeric:tabular-nums;
   }
+
+  /* ===== PWA Install Banner ===== */
+  .pwa-banner{
+    position:fixed;
+    left:50%;
+    bottom:24px;
+    transform:translate(-50%,140%);
+    z-index:200;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:14px 18px;
+    box-shadow:0 18px 50px rgba(0,0,0,.55);
+    max-width:min(520px,calc(100vw - 32px));
+    width:max-content;
+    transition:transform .45s cubic-bezier(.2,.8,.2,1), opacity .3s ease;
+    opacity:0;
+  }
+  .pwa-banner.show{
+    transform:translate(-50%,0);
+    opacity:1;
+  }
+  .pwa-banner .pwa-icon{
+    width:46px;height:46px;border-radius:12px;flex-shrink:0;
+    overflow:hidden;
+    background:var(--surface-2);
+  }
+  .pwa-banner .pwa-icon img{
+    width:100%;height:100%;object-fit:cover;display:block;
+  }
+  .pwa-banner .pwa-text{
+    display:flex;flex-direction:column;gap:2px;min-width:0;
+  }
+  .pwa-banner .pwa-text strong{
+    font-size:14px;font-weight:600;color:var(--text);
+  }
+  .pwa-banner .pwa-text span{
+    font-size:12px;color:var(--text-muted);
+  }
+  .pwa-banner .pwa-actions{
+    display:flex;gap:8px;flex-shrink:0;
+  }
+  .pwa-banner button{
+    padding:8px 14px;
+    font-size:13px;
+    border-radius:9px;
+  }
+  .pwa-banner .pwa-install{
+    background:var(--accent);
+    color:var(--accent-ink);
+    border-color:var(--accent);
+    font-weight:600;
+  }
+  @media (max-width:480px){
+    .pwa-banner{
+      flex-direction:column;
+      align-items:stretch;
+      text-align:center;
+      gap:12px;
+      padding:16px;
+    }
+    .pwa-banner .pwa-icon{align-self:center;}
+    .pwa-banner .pwa-text{align-items:center;}
+    .pwa-banner .pwa-actions{justify-content:center;}
+  }
+
+  /* Toast */
+  .toast{
+    position:fixed;
+    left:50%;
+    top:24px;
+    transform:translate(-50%,-140%);
+    background:var(--surface);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:12px 18px;
+    border-radius:12px;
+    font-size:13px;
+    z-index:300;
+    transition:transform .4s cubic-bezier(.2,.8,.2,1);
+    box-shadow:0 14px 40px rgba(0,0,0,.5);
+    max-width:calc(100vw - 32px);
+  }
+  .toast.show{transform:translate(-50%,0);}
 </style>
 </head>
 <body>
 
+<!-- Floating logo top-right -->
+<div class="lxh-logo-wrap">
+  <div class='lxh-logo'>
+    <h1>
+      <span>local</span>
+      <span style='position:relative;display:inline-block;width:.78em;height:.92em;margin:0 .12em;transform:scale(1.2);'>
+        <span style='position:absolute;top:50%;left:50%;width:22%;height:118%;border-radius:6px;background:linear-gradient(180deg,#ffd166,var(--accent-orange,#ff7900),#ff451f);transform:translate(-50%,-50%) rotate(45deg);box-shadow:0 0 8px rgba(255,119,0,.35);'></span>
+        <span style='position:absolute;top:50%;left:50%;width:22%;height:118%;border-radius:6px;background:linear-gradient(180deg,#ffd166,var(--accent-orange,#ff7900),#ff451f);transform:translate(-50%,-50%) rotate(-45deg);box-shadow:0 0 8px rgba(255,119,0,.35);'></span>
+      </span>
+      <span>host</span>
+    </h1>
+    <p class='blog-description'>One File. Full Power.</p>
+  </div>
+</div>
+
 <main id="stage" class="checker">
-  <div class="topbar">
-    <div class="brand">
-      <div class="brand-name">BgRemove<span>by local<span style='position:relative;display:inline-block;width:.78em;height:.92em;margin:0 .12em;transform:scale(1.2);'>
-      <!-- الذراع الأول للحرف X -->
-      <span style='position:absolute;top:50%;left:50%;width:22%;height:118%;border-radius:6px;background:linear-gradient(180deg,#ffd166,var(--accent-orange,#ff7900),#ff451f);transform:translate(-50%,-50%) rotate(45deg);box-shadow:0 0 8px rgba(255,119,0,.35);'/>
-      
-      <!-- الذراع الثاني للحرف X -->
-      <span style='position:absolute;top:50%;left:50%;width:22%;height:118%;border-radius:6px;background:linear-gradient(180deg,#ffd166,var(--accent-orange,#ff7900),#ff451f);transform:translate(-50%,-50%) rotate(-45deg);box-shadow:0 0 8px rgba(255,119,0,.35);'/>
-    </span>host</span></div>
-      
+  <div class="toolbar" id="resultToolbar" style="display:none;">
+    <div class="sensitivity">
+      <label for="thresholdInput">Sensitivity</label>
+      <button type="button" class="step-btn" id="thresholdMinus">&minus;</button>
+      <input type="range" id="thresholdInput" min="15" max="110" value="42">
+      <button type="button" class="step-btn" id="thresholdPlus">&plus;</button>
+      <span class="val" id="thresholdVal">42</span>
     </div>
-    <div class="toolbar" id="resultToolbar" style="display:none;">
-      <div class="sensitivity">
-        <label for="thresholdInput">Sensitivity</label>
-        <button type="button" class="step-btn" id="thresholdMinus">&minus;</button>
-        <input type="range" id="thresholdInput" min="15" max="110" value="42">
-        <button type="button" class="step-btn" id="thresholdPlus">&plus;</button>
-        <span class="val" id="thresholdVal">42</span>
-      </div>
-      <button id="changeImageBtn">Change image</button>
-      <button id="resetBtn" class="danger">Reset</button>
-      <button id="downloadBtn" class="primary" disabled>Download PNG</button>
-    </div>
+    <button id="changeImageBtn">Change image</button>
+    <button id="resetBtn" class="danger">Reset</button>
+    <button id="downloadBtn" class="primary" disabled>Download PNG</button>
   </div>
 
   <div class="canvas">
@@ -368,6 +458,7 @@
   </div>
 </main>
 
+<!-- Gallery overlay -->
 <div class="overlay" id="galleryOverlay">
   <div class="panel">
     <div class="panel-head">
@@ -383,6 +474,7 @@
   </div>
 </div>
 
+<!-- Loading overlay -->
 <div class="overlay" id="loadingOverlay">
   <div class="panel loading-panel">
     <p id="loadingLabel">Removing background…</p>
@@ -393,286 +485,366 @@
   </div>
 </div>
 
+<!-- PWA install banner -->
+<div class="pwa-banner" id="pwaBanner" role="dialog" aria-label="Install app">
+  <div class="pwa-icon">
+    <img src="https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg" alt="BgRemove icon">
+  </div>
+  <div class="pwa-text">
+    <strong>Install BgRemove</strong>
+    <span>Run it offline, right from your home screen.</span>
+  </div>
+  <div class="pwa-actions">
+    <button id="pwaLater">Later</button>
+    <button class="pwa-install" id="pwaInstall">Install</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 <input type="file" id="fileInput" accept="image/*" multiple hidden>
 
 <script>
-  const emptyState = document.getElementById('emptyState');
-  const imageFrame = document.getElementById('imageFrame');
-  const resultCanvas = document.getElementById('resultCanvas');
-  const resultCtx = resultCanvas.getContext('2d');
-  const resultToolbar = document.getElementById('resultToolbar');
-  const openGalleryBtn = document.getElementById('openGalleryBtn');
-  const changeImageBtn = document.getElementById('changeImageBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const downloadBtn = document.getElementById('downloadBtn');
-  const thresholdInput = document.getElementById('thresholdInput');
-  const thresholdVal = document.getElementById('thresholdVal');
+/* ===================== PWA ===================== */
+let deferredPrompt = null;
+const pwaBanner = document.getElementById('pwaBanner');
+const pwaInstall = document.getElementById('pwaInstall');
+const pwaLater = document.getElementById('pwaLater');
 
-  const galleryOverlay = document.getElementById('galleryOverlay');
-  const closeGalleryBtn = document.getElementById('closeGalleryBtn');
-  const dropzone = document.getElementById('dropzone');
-  const fileInput = document.getElementById('fileInput');
-  const thumbGrid = document.getElementById('thumbGrid');
-  const thumbEmpty = document.getElementById('thumbEmpty');
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+  || window.navigator.standalone === true;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+const pwaDismissed = localStorage.getItem('pwaDismissed') === '1';
 
-  const loadingOverlay = document.getElementById('loadingOverlay');
-  const loadingLabel = document.getElementById('loadingLabel');
-  const progressFill = document.getElementById('progressFill');
-  const progressPercent = document.getElementById('progressPercent');
+function showPwaBanner(){
+  if(isStandalone || pwaDismissed) return;
+  pwaBanner.classList.add('show');
+}
+function hidePwaBanner(){
+  pwaBanner.classList.remove('show');
+}
 
-  const MAX_DIM = 1600;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showPwaBanner();
+});
 
-  let images = [];
-  let idCounter = 0;
-  let activeName = 'image';
-  let originalImageData = null;
-
-  function openGallery(){
-    galleryOverlay.classList.add('open');
-  }
-  function closeGallery(){
-    galleryOverlay.classList.remove('open');
-  }
-  function setProgress(pct, label){
-    progressFill.style.width = pct + '%';
-    progressPercent.textContent = pct + '%';
-    if(label) loadingLabel.textContent = label;
-  }
-  function showLoading(){
-    setProgress(0, 'Reading image…');
-    loadingOverlay.classList.add('open');
-  }
-  function hideLoading(){
-    loadingOverlay.classList.remove('open');
-  }
-  function nextFrame(){
-    return new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
-  }
-
-  function renderThumbnails(){
-    thumbGrid.querySelectorAll('.thumb').forEach(el => el.remove());
-    thumbEmpty.style.display = images.length ? 'none' : 'block';
-    images.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'thumb';
-      const img = document.createElement('img');
-      img.src = item.url;
-      img.alt = item.name;
-      div.appendChild(img);
-      div.addEventListener('click', () => selectImage(item.id));
-      thumbGrid.appendChild(div);
-    });
-  }
-
-  function handleFiles(fileList){
-    Array.from(fileList).forEach(file => {
-      if(!file.type.startsWith('image/')) return;
-      images.push({
-        id: idCounter++,
-        file,
-        url: URL.createObjectURL(file),
-        name: file.name
-      });
-    });
-    renderThumbnails();
-  }
-
-  function loadImageElement(url){
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = url;
-    });
-  }
-
-  function buildMask(imageData, threshold){
-    const { data, width, height } = imageData;
-    const out = new Uint8ClampedArray(data);
-    const total = width * height;
-    const visited = new Uint8Array(total);
-    const queue = new Int32Array(total);
-    let qHead = 0, qTail = 0;
-
-    let rSum = 0, gSum = 0, bSum = 0, count = 0;
-    for(let x = 0; x < width; x++){
-      count += 2;
-      let p = (x) * 4; rSum += data[p]; gSum += data[p+1]; bSum += data[p+2];
-      p = ((height - 1) * width + x) * 4; rSum += data[p]; gSum += data[p+1]; bSum += data[p+2];
+pwaInstall.addEventListener('click', async () => {
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if(outcome === 'accepted'){
+      showToast('Installing…');
     }
-    for(let y = 0; y < height; y++){
-      count += 2;
-      let p = (y * width) * 4; rSum += data[p]; gSum += data[p+1]; bSum += data[p+2];
-      p = (y * width + width - 1) * 4; rSum += data[p]; gSum += data[p+1]; bSum += data[p+2];
-    }
-    const refR = rSum / count, refG = gSum / count, refB = bSum / count;
+    deferredPrompt = null;
+    hidePwaBanner();
+    return;
+  }
+  if(isIOS && isSafari){
+    showToast('Tap Share ⤴ then "Add to Home Screen"');
+  } else {
+    showToast('Use your browser menu → Install app');
+  }
+  hidePwaBanner();
+});
 
-    function dist(idx){
-      const p = idx * 4;
-      const dr = data[p] - refR, dg = data[p+1] - refG, db = data[p+2] - refB;
-      return Math.sqrt(dr*dr + dg*dg + db*db);
+pwaLater.addEventListener('click', () => {
+  hidePwaBanner();
+  localStorage.setItem('pwaDismissed', '1');
+});
+
+window.addEventListener('appinstalled', () => {
+  hidePwaBanner();
+  deferredPrompt = null;
+  showToast('App installed ✓');
+});
+
+/* Fallback: if no beforeinstallprompt after a delay (iOS / already installable),
+   show banner with instructions */
+setTimeout(() => {
+  if(!isStandalone && !pwaDismissed && !deferredPrompt){
+    showPwaBanner();
+  }
+}, 3500);
+
+/* Register service worker */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+/* ===================== Toast ===================== */
+const toastEl = document.getElementById('toast');
+let toastTimer = null;
+function showToast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
+}
+
+/* ===================== App logic ===================== */
+const emptyState = document.getElementById('emptyState');
+const imageFrame = document.getElementById('imageFrame');
+const resultCanvas = document.getElementById('resultCanvas');
+const resultCtx = resultCanvas.getContext('2d');
+const resultToolbar = document.getElementById('resultToolbar');
+const openGalleryBtn = document.getElementById('openGalleryBtn');
+const changeImageBtn = document.getElementById('changeImageBtn');
+const resetBtn = document.getElementById('resetBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const thresholdInput = document.getElementById('thresholdInput');
+const thresholdVal = document.getElementById('thresholdVal');
+
+const galleryOverlay = document.getElementById('galleryOverlay');
+const closeGalleryBtn = document.getElementById('closeGalleryBtn');
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const thumbGrid = document.getElementById('thumbGrid');
+const thumbEmpty = document.getElementById('thumbEmpty');
+
+const loadingOverlay = document.getElementById('loadingOverlay');
+const loadingLabel = document.getElementById('loadingLabel');
+const progressFill = document.getElementById('progressFill');
+const progressPercent = document.getElementById('progressPercent');
+
+const MAX_DIM = 1600;
+
+let images = [];
+let idCounter = 0;
+let activeName = 'image';
+let originalImageData = null;
+
+function openGallery(){ galleryOverlay.classList.add('open'); }
+function closeGallery(){ galleryOverlay.classList.remove('open'); }
+function setProgress(pct, label){
+  progressFill.style.width = pct + '%';
+  progressPercent.textContent = pct + '%';
+  if(label) loadingLabel.textContent = label;
+}
+function showLoading(){ setProgress(0, 'Reading image…'); loadingOverlay.classList.add('open'); }
+function hideLoading(){ loadingOverlay.classList.remove('open'); }
+function nextFrame(){
+  return new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
+}
+
+function renderThumbnails(){
+  thumbGrid.querySelectorAll('.thumb').forEach(el => el.remove());
+  thumbEmpty.style.display = images.length ? 'none' : 'block';
+  images.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'thumb';
+    const img = document.createElement('img');
+    img.src = item.url;
+    img.alt = item.name;
+    div.appendChild(img);
+    div.addEventListener('click', () => selectImage(item.id));
+    thumbGrid.appendChild(div);
+  });
+}
+
+function handleFiles(fileList){
+  Array.from(fileList).forEach(file => {
+    if(!file.type.startsWith('image/')) return;
+    images.push({
+      id: idCounter++,
+      file,
+      url: URL.createObjectURL(file),
+      name: file.name
+    });
+  });
+  renderThumbnails();
+}
+
+function loadImageElement(url){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+function buildMask(imageData, threshold){
+  const { data, width, height } = imageData;
+  const out = new Uint8ClampedArray(data);
+  const total = width * height;
+  const visited = new Uint8Array(total);
+  const queue = new Int32Array(total);
+  let qHead = 0, qTail = 0;
+
+  let rSum = 0, gSum = 0, bSum = 0, count = 0;
+  for(let x = 0; x < width; x++){
+    count += 2;
+    let p = x * 4; rSum += data[p]; gSum += data[p+1]; bSum += data[p+2];
+    p = ((height - 1) * width + x) * 4; rSum += data[p]; gSum += data[p+1]; bSum += data[p+2];
+  }
+  for(let y = 0; y < height; y++){
+    count += 2;
+    let p = (y * width) * 4; rSum += data[p]; gSum += data[p+1]; bSum += data[p+2];
+    p = (y * width + width - 1) * 4; rSum += data[p]; gSum += data[p+1]; bSum += data[p+2];
+  }
+  const refR = rSum / count, refG = gSum / count, refB = bSum / count;
+
+  function dist(idx){
+    const p = idx * 4;
+    const dr = data[p] - refR, dg = data[p+1] - refG, db = data[p+2] - refB;
+    return Math.sqrt(dr*dr + dg*dg + db*db);
+  }
+  function trySeed(x, y){
+    const idx = y * width + x;
+    if(visited[idx]) return;
+    if(dist(idx) <= threshold){
+      visited[idx] = 1;
+      queue[qTail++] = idx;
     }
-    function trySeed(x, y){
-      const idx = y * width + x;
-      if(visited[idx]) return;
-      if(dist(idx) <= threshold){
-        visited[idx] = 1;
-        queue[qTail++] = idx;
+  }
+  for(let x = 0; x < width; x++){ trySeed(x, 0); trySeed(x, height - 1); }
+  for(let y = 0; y < height; y++){ trySeed(0, y); trySeed(width - 1, y); }
+
+  while(qHead < qTail){
+    const idx = queue[qHead++];
+    const x = idx % width, y = (idx / width) | 0;
+    if(x > 0){ const n = idx - 1; if(!visited[n] && dist(n) <= threshold){ visited[n] = 1; queue[qTail++] = n; } }
+    if(x < width - 1){ const n = idx + 1; if(!visited[n] && dist(n) <= threshold){ visited[n] = 1; queue[qTail++] = n; } }
+    if(y > 0){ const n = idx - width; if(!visited[n] && dist(n) <= threshold){ visited[n] = 1; queue[qTail++] = n; } }
+    if(y < height - 1){ const n = idx + width; if(!visited[n] && dist(n) <= threshold){ visited[n] = 1; queue[qTail++] = n; } }
+  }
+
+  const featherBand = Math.max(threshold * 0.6, 8);
+  for(let idx = 0; idx < total; idx++){
+    const p = idx * 4;
+    if(visited[idx]){
+      out[p+3] = 0;
+    } else {
+      const d = dist(idx);
+      if(d <= threshold + featherBand){
+        const t = Math.max(0, Math.min(1, (d - threshold) / featherBand));
+        out[p+3] = Math.round(255 * t);
       }
     }
-    for(let x = 0; x < width; x++){ trySeed(x, 0); trySeed(x, height - 1); }
-    for(let y = 0; y < height; y++){ trySeed(0, y); trySeed(width - 1, y); }
-
-    while(qHead < qTail){
-      const idx = queue[qHead++];
-      const x = idx % width, y = (idx / width) | 0;
-      if(x > 0){ const n = idx - 1; if(!visited[n] && dist(n) <= threshold){ visited[n] = 1; queue[qTail++] = n; } }
-      if(x < width - 1){ const n = idx + 1; if(!visited[n] && dist(n) <= threshold){ visited[n] = 1; queue[qTail++] = n; } }
-      if(y > 0){ const n = idx - width; if(!visited[n] && dist(n) <= threshold){ visited[n] = 1; queue[qTail++] = n; } }
-      if(y < height - 1){ const n = idx + width; if(!visited[n] && dist(n) <= threshold){ visited[n] = 1; queue[qTail++] = n; } }
-    }
-
-    const featherBand = Math.max(threshold * 0.6, 8);
-    for(let idx = 0; idx < total; idx++){
-      const p = idx * 4;
-      if(visited[idx]){
-        out[p+3] = 0;
-      } else {
-        const d = dist(idx);
-        if(d <= threshold + featherBand){
-          const t = Math.max(0, Math.min(1, (d - threshold) / featherBand));
-          out[p+3] = Math.round(255 * t);
-        }
-      }
-    }
-    return new ImageData(out, width, height);
   }
+  return new ImageData(out, width, height);
+}
 
-  function renderWithThreshold(threshold){
-    if(!originalImageData) return;
-    const masked = buildMask(originalImageData, threshold);
-    resultCanvas.width = masked.width;
-    resultCanvas.height = masked.height;
-    resultCtx.putImageData(masked, 0, 0);
-  }
+function renderWithThreshold(threshold){
+  if(!originalImageData) return;
+  const masked = buildMask(originalImageData, threshold);
+  resultCanvas.width = masked.width;
+  resultCanvas.height = masked.height;
+  resultCtx.putImageData(masked, 0, 0);
+}
 
-  async function selectImage(id){
-    const item = images.find(i => i.id === id);
-    if(!item) return;
-    closeGallery();
-    activeName = item.name.replace(/\.[^/.]+$/, '') || 'image';
-    emptyState.style.display = 'none';
-    imageFrame.style.display = 'none';
-    resultToolbar.style.display = 'flex';
-    downloadBtn.disabled = true;
-    showLoading();
-    try{
-      await nextFrame();
-      const img = await loadImageElement(item.url);
-      let w = img.naturalWidth, h = img.naturalHeight;
-      const scale = Math.min(1, MAX_DIM / Math.max(w, h));
-      w = Math.round(w * scale);
-      h = Math.round(h * scale);
+async function selectImage(id){
+  const item = images.find(i => i.id === id);
+  if(!item) return;
+  closeGallery();
+  activeName = item.name.replace(/\.[^/.]+$/, '') || 'image';
+  emptyState.style.display = 'none';
+  imageFrame.style.display = 'none';
+  resultToolbar.style.display = 'flex';
+  downloadBtn.disabled = true;
+  showLoading();
+  try{
+    await nextFrame();
+    const img = await loadImageElement(item.url);
+    let w = img.naturalWidth, h = img.naturalHeight;
+    const scale = Math.min(1, MAX_DIM / Math.max(w, h));
+    w = Math.round(w * scale);
+    h = Math.round(h * scale);
 
-      setProgress(30, 'Preparing pixels…');
-      await nextFrame();
-      const source = document.createElement('canvas');
-      source.width = w;
-      source.height = h;
-      const sourceCtx = source.getContext('2d');
-      sourceCtx.drawImage(img, 0, 0, w, h);
-      originalImageData = sourceCtx.getImageData(0, 0, w, h);
+    setProgress(30, 'Preparing pixels…');
+    await nextFrame();
+    const source = document.createElement('canvas');
+    source.width = w;
+    source.height = h;
+    const sourceCtx = source.getContext('2d');
+    sourceCtx.drawImage(img, 0, 0, w, h);
+    originalImageData = sourceCtx.getImageData(0, 0, w, h);
 
-      setProgress(60, 'Removing background…');
-      await nextFrame();
-      renderWithThreshold(Number(thresholdInput.value));
+    setProgress(60, 'Removing background…');
+    await nextFrame();
+    renderWithThreshold(Number(thresholdInput.value));
 
-      setProgress(100, 'Done');
-      imageFrame.style.display = 'flex';
-      downloadBtn.disabled = false;
-    }catch(err){
-      setProgress(0, 'Something went wrong. Try another image.');
-      await new Promise(r => setTimeout(r, 1400));
-      resetStage();
-    }
-    hideLoading();
-  }
-
-  function resetStage(){
-    emptyState.style.display = 'block';
-    imageFrame.style.display = 'none';
-    resultToolbar.style.display = 'none';
-    resultCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
-    downloadBtn.disabled = true;
-    originalImageData = null;
-  }
-
-  openGalleryBtn.addEventListener('click', openGallery);
-  changeImageBtn.addEventListener('click', openGallery);
-  closeGalleryBtn.addEventListener('click', closeGallery);
-  resetBtn.addEventListener('click', () => {
+    setProgress(100, 'Done');
+    imageFrame.style.display = 'flex';
+    downloadBtn.disabled = false;
+  }catch(err){
+    setProgress(0, 'Something went wrong. Try another image.');
+    await new Promise(r => setTimeout(r, 1400));
     resetStage();
-    closeGallery();
-  });
-
-  dropzone.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', e => {
-    handleFiles(e.target.files);
-    fileInput.value = '';
-  });
-  dropzone.addEventListener('dragover', e => {
-    e.preventDefault();
-    dropzone.classList.add('drag');
-  });
-  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
-  dropzone.addEventListener('drop', e => {
-    e.preventDefault();
-    dropzone.classList.remove('drag');
-    handleFiles(e.dataTransfer.files);
-  });
-
-  let thresholdRaf = null;
-  function applyThresholdUpdate(){
-    thresholdVal.textContent = thresholdInput.value;
-    if(thresholdRaf) cancelAnimationFrame(thresholdRaf);
-    thresholdRaf = requestAnimationFrame(() => renderWithThreshold(Number(thresholdInput.value)));
   }
-  thresholdInput.addEventListener('input', applyThresholdUpdate);
+  hideLoading();
+}
 
-  const thresholdMinus = document.getElementById('thresholdMinus');
-  const thresholdPlus = document.getElementById('thresholdPlus');
-  function stepThreshold(delta){
-    const min = Number(thresholdInput.min), max = Number(thresholdInput.max);
-    const next = Math.min(max, Math.max(min, Number(thresholdInput.value) + delta));
-    thresholdInput.value = next;
-    applyThresholdUpdate();
-  }
-  thresholdMinus.addEventListener('click', () => stepThreshold(-1));
-  thresholdPlus.addEventListener('click', () => stepThreshold(1));
+function resetStage(){
+  emptyState.style.display = 'block';
+  imageFrame.style.display = 'none';
+  resultToolbar.style.display = 'none';
+  resultCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+  downloadBtn.disabled = true;
+  originalImageData = null;
+}
 
-  downloadBtn.addEventListener('click', () => {
-    resultCanvas.toBlob(blob => {
-      if(!blob) return;
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = activeName + '-nobg.png';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    }, 'image/png');
-  });
+openGalleryBtn.addEventListener('click', openGallery);
+changeImageBtn.addEventListener('click', openGallery);
+closeGalleryBtn.addEventListener('click', closeGallery);
+resetBtn.addEventListener('click', () => { resetStage(); closeGallery(); });
 
-  document.addEventListener('keydown', e => {
-    if(e.key === 'Escape'){
-      closeGallery();
-    }
-  });
+dropzone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => {
+  handleFiles(e.target.files);
+  fileInput.value = '';
+});
+dropzone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropzone.classList.add('drag');
+});
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag');
+  handleFiles(e.dataTransfer.files);
+});
 
-  if('serviceWorker' in navigator){
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-    });
-  }
+let thresholdRaf = null;
+function applyThresholdUpdate(){
+  thresholdVal.textContent = thresholdInput.value;
+  if(thresholdRaf) cancelAnimationFrame(thresholdRaf);
+  thresholdRaf = requestAnimationFrame(() => renderWithThreshold(Number(thresholdInput.value)));
+}
+thresholdInput.addEventListener('input', applyThresholdUpdate);
+
+const thresholdMinus = document.getElementById('thresholdMinus');
+const thresholdPlus = document.getElementById('thresholdPlus');
+function stepThreshold(delta){
+  const min = Number(thresholdInput.min), max = Number(thresholdInput.max);
+  const next = Math.min(max, Math.max(min, Number(thresholdInput.value) + delta));
+  thresholdInput.value = next;
+  applyThresholdUpdate();
+}
+thresholdMinus.addEventListener('click', () => stepThreshold(-1));
+thresholdPlus.addEventListener('click', () => stepThreshold(1));
+
+downloadBtn.addEventListener('click', () => {
+  resultCanvas.toBlob(blob => {
+    if(!blob) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = activeName + '-nobg.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }, 'image/png');
+});
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeGallery();
+});
 </script>
 
 </body>
