@@ -894,4 +894,59 @@ function resetStage(){
 addCard.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', e => {
   handleFiles(e.target.files);
-  fileInput.value
+  fileInput.value = '';
+});
+
+/* Drag & drop onto the album */
+['dragenter','dragover'].forEach(ev => {
+  cardScroller.addEventListener(ev, e => {
+    e.preventDefault();
+    cardScroller.classList.add('drag');
+  });
+});
+['dragleave','drop'].forEach(ev => {
+  cardScroller.addEventListener(ev, e => {
+    e.preventDefault();
+    cardScroller.classList.remove('drag');
+  });
+});
+cardScroller.addEventListener('drop', e => {
+  if(e.dataTransfer && e.dataTransfer.files) handleFiles(e.dataTransfer.files);
+});
+
+resetBtn.addEventListener('click', resetStage);
+
+let thresholdRaf = null;
+function applyThresholdUpdate(){
+  thresholdVal.textContent = thresholdInput.value;
+  if(thresholdRaf) cancelAnimationFrame(thresholdRaf);
+  thresholdRaf = requestAnimationFrame(() => renderWithThreshold(Number(thresholdInput.value)));
+}
+thresholdInput.addEventListener('input', applyThresholdUpdate);
+
+const thresholdMinus = document.getElementById('thresholdMinus');
+const thresholdPlus = document.getElementById('thresholdPlus');
+function stepThreshold(delta){
+  const min = Number(thresholdInput.min), max = Number(thresholdInput.max);
+  const next = Math.min(max, Math.max(min, Number(thresholdInput.value) + delta));
+  thresholdInput.value = next;
+  applyThresholdUpdate();
+}
+thresholdMinus.addEventListener('click', () => stepThreshold(-1));
+thresholdPlus.addEventListener('click', () => stepThreshold(1));
+
+downloadBtn.addEventListener('click', () => {
+  resultCanvas.toBlob(blob => {
+    if(!blob) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = activeName + '-nobg.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }, 'image/png');
+});
+</script>
+
+</body>
+</html>
