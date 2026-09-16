@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0c0d10">
 <meta name="description" content="Remove image backgrounds locally in your browser. One File. Full Power.">
-<title>BgRemove-lXh</title>
+<title>BgRemove-lxh — localXhost</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/jpeg" href="https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg">
 <link rel="apple-touch-icon" href="https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="BgRemove">
+<meta name="apple-mobile-web-app-title" content="BgRemove-lxh">
 <style>
   :root{
     --bg:#0c0d10;
@@ -103,56 +103,36 @@
     .lxh-logo .blog-description{font-size:9px;letter-spacing:1px;margin-top:6px;}
   }
 
-  /* ===== Toolbar ===== */
-  .toolbar{
+  /* ===== Top bar (app name + actions) ===== */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding:16px 22px 8px;
+    z-index:5;
+    flex-wrap:wrap;
+  }
+  .app-title{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:16px;
+    font-weight:700;
+    letter-spacing:-0.02em;
+  }
+  .app-title .dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--accent);
+    box-shadow:0 0 10px var(--accent);
+  }
+  .app-title span{color:var(--text-muted);font-weight:400;font-size:12px;}
+
+  .actions{
     display:flex;
     align-items:center;
     gap:10px;
     flex-wrap:wrap;
-    padding:18px 24px;
-    z-index:5;
-    justify-content:flex-start;
-    max-width:calc(100% - 220px);
-  }
-  @media (max-width:560px){
-    .toolbar{max-width:100%;padding:14px 16px;justify-content:center;}
-  }
-  .sensitivity{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:10px;
-    padding:8px 14px;
-  }
-  .sensitivity label{
-    font-size:13px;
-    color:var(--text-muted);
-    white-space:nowrap;
-  }
-  .sensitivity input[type=range]{
-    width:120px;
-    accent-color:var(--accent);
-  }
-  .step-btn{
-    width:24px;
-    height:24px;
-    padding:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:6px;
-    font-size:15px;
-    line-height:1;
-    background:var(--surface-2);
-  }
-  .sensitivity .val{
-    font-size:12px;
-    color:var(--text-muted);
-    min-width:26px;
-    text-align:right;
-    font-variant-numeric:tabular-nums;
   }
   button{
     font-family:var(--font);
@@ -179,14 +159,71 @@
   button.danger{color:var(--danger);}
   button:disabled{opacity:0.4;cursor:not-allowed;}
 
-  /* ===== Canvas area ===== */
-  .canvas{
+  /* ===== Sensitivity panel (below top bar, left side away from logo) ===== */
+  .sensitivity-bar{
+    display:none;
+    align-items:center;
+    gap:10px;
+    padding:8px 22px 10px;
+    z-index:5;
+    flex-wrap:wrap;
+  }
+  .sensitivity-bar.show{display:flex;}
+  .sensitivity{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:8px 14px;
+  }
+  .sensitivity label{
+    font-size:13px;
+    color:var(--text-muted);
+    white-space:nowrap;
+  }
+  .sensitivity input[type=range]{
+    width:140px;
+    accent-color:var(--accent);
+  }
+  .step-btn{
+    width:24px;
+    height:24px;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:6px;
+    font-size:15px;
+    line-height:1;
+    background:var(--surface-2);
+  }
+  .sensitivity .val{
+    font-size:12px;
+    color:var(--text-muted);
+    min-width:26px;
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* ===== Main ===== */
+  .main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    position:relative;
+  }
+
+  /* Display screen (relative, not overlay) */
+  .display-screen{
     flex:1;
     display:flex;
     align-items:center;
     justify-content:center;
     position:relative;
-    padding:24px;
+    padding:12px 24px;
     min-height:0;
   }
   .empty-state{
@@ -205,7 +242,7 @@
     color:var(--text-muted);
     font-size:15px;
     line-height:1.6;
-    margin:0 0 26px;
+    margin:0;
   }
   .image-frame{
     max-width:100%;
@@ -218,95 +255,25 @@
   }
   .image-frame canvas{
     max-width:100%;
-    max-height:calc(100vh - 160px);
+    max-height:100%;
     width:auto;
     height:auto;
     display:block;
   }
 
-  /* ===== Overlays ===== */
-  .overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(8,9,11,0.72);
-    backdrop-filter:blur(6px);
-    -webkit-backdrop-filter:blur(6px);
+  /* Loading inside display-screen */
+  .loading-inline{
     display:none;
-    align-items:center;
-    justify-content:center;
-    z-index:100;
-    padding:20px;
-  }
-  .overlay.open{display:flex;}
-  .panel{
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:var(--radius);
     width:100%;
-    max-width:560px;
-    padding:26px;
-    max-height:90vh;
-    overflow:auto;
-  }
-  .panel-head{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    margin-bottom:18px;
-  }
-  .panel-head h2{font-size:19px;font-weight:700;margin:0;}
-  .icon-btn{
-    background:transparent;
-    border:none;
-    color:var(--text-muted);
-    font-size:20px;
-    line-height:1;
-    padding:4px 8px;
-  }
-  .icon-btn:hover{color:var(--text);background:transparent;}
-  .dropzone{
-    border:1.5px dashed var(--border);
-    border-radius:12px;
-    padding:32px 20px;
+    max-width:340px;
     text-align:center;
-    cursor:pointer;
-    transition:border-color .15s ease, background .15s ease;
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
   }
-  .dropzone:hover,.dropzone.drag{
-    border-color:var(--accent);
-    background:rgba(182,255,110,0.05);
-  }
-  .dropzone p{margin:0;color:var(--text-muted);font-size:14px;}
-  .dropzone p strong{color:var(--text);font-weight:500;}
-  .thumb-grid{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:10px;
-    margin-top:18px;
-  }
-  @media (max-width:480px){
-    .thumb-grid{grid-template-columns:repeat(3,1fr);}
-  }
-  .thumb{
-    aspect-ratio:1/1;
-    border-radius:10px;
-    overflow:hidden;
-    cursor:pointer;
-    border:1px solid var(--border);
-    position:relative;
-    background:var(--surface-2);
-  }
-  .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
-  .thumb:hover{border-color:var(--accent);}
-  .thumb-empty{
-    grid-column:1/-1;
-    color:var(--text-muted);
-    font-size:13px;
-    text-align:center;
-    padding:18px 0 4px;
-  }
-  .loading-panel{width:100%;max-width:340px;text-align:center;}
-  .loading-panel p{font-size:14px;color:var(--text-muted);margin:0 0 16px;}
+  .loading-inline.show{display:block;}
+  .loading-inline p{font-size:14px;color:var(--text-muted);margin:0 0 16px;}
   .progress-track{
     height:6px;
     border-radius:6px;
@@ -327,7 +294,137 @@
     font-variant-numeric:tabular-nums;
   }
 
-  /* ===== PWA Install Banner ===== */
+  /* ===== Gallery album (playing-card fan, horizontal scroll) ===== */
+  .gallery-dock{
+    position:relative;
+    z-index:6;
+    padding:10px 0 22px;
+    background:linear-gradient(180deg, transparent 0%, rgba(12,13,16,0.65) 55%, var(--bg) 100%);
+  }
+  .gallery-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 22px 8px;
+    gap:12px;
+  }
+  .gallery-head h2{
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--text-muted);
+    margin:0;
+  }
+  .gallery-head .hint{
+    font-size:11px;
+    color:var(--text-muted);
+    opacity:.7;
+  }
+  .card-scroller{
+    display:flex;
+    gap:14px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding:18px 22px 10px;
+    scroll-snap-type:x proximity;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+    scrollbar-color:var(--border) transparent;
+  }
+  .card-scroller::-webkit-scrollbar{height:8px;}
+  .card-scroller::-webkit-scrollbar-track{background:transparent;}
+  .card-scroller::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
+  .card-scroller::-webkit-scrollbar-thumb:hover{background:#3a3e46;}
+
+  .card{
+    flex:0 0 auto;
+    width:130px;
+    height:170px;
+    border-radius:14px;
+    overflow:hidden;
+    position:relative;
+    cursor:pointer;
+    border:1px solid var(--border);
+    background:var(--surface);
+    box-shadow:0 10px 22px rgba(0,0,0,.45), 0 2px 6px rgba(0,0,0,.35);
+    scroll-snap-align:center;
+    transition:transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s ease, border-color .2s ease;
+  }
+  .card img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    pointer-events:none;
+  }
+  .card::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(180deg,transparent 55%, rgba(0,0,0,.55));
+    pointer-events:none;
+  }
+  .card .card-name{
+    position:absolute;
+    left:8px;right:8px;bottom:6px;
+    font-size:10px;
+    color:#fff;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    overflow:hidden;
+    opacity:.85;
+    z-index:2;
+    text-shadow:0 1px 2px rgba(0,0,0,.7);
+  }
+  .card:hover{
+    transform:translateY(-8px) rotate(-1.2deg) scale(1.03);
+    border-color:var(--accent);
+    box-shadow:0 18px 36px rgba(0,0,0,.55), 0 0 0 1px var(--accent);
+    z-index:3;
+  }
+  .card:nth-child(odd):hover{transform:translateY(-8px) rotate(1.2deg) scale(1.03);}
+  .card.active{
+    border-color:var(--accent);
+    box-shadow:0 0 0 2px var(--accent), 0 18px 36px rgba(0,0,0,.6);
+  }
+
+  /* Add-card */
+  .card.add-card{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:8px;
+    border-style:dashed;
+    color:var(--text-muted);
+    font-size:12px;
+    text-align:center;
+    background:var(--surface);
+  }
+  .card.add-card .plus{
+    width:36px;height:36px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;line-height:1;
+    background:var(--surface-2);
+    color:var(--text);
+  }
+  .card.add-card:hover{
+    color:var(--text);
+    border-color:var(--accent);
+    background:rgba(182,255,110,0.05);
+  }
+  .card.add-card:hover .plus{background:var(--accent);color:var(--accent-ink);}
+
+  /* Drop active state */
+  .card-scroller.drag{
+    outline:1.5px dashed var(--accent);
+    outline-offset:-6px;
+    border-radius:16px;
+    background:rgba(182,255,110,0.04);
+  }
+
+  /* ===== PWA install banner ===== */
   .pwa-banner{
     position:fixed;
     left:50%;
@@ -347,48 +444,25 @@
     transition:transform .45s cubic-bezier(.2,.8,.2,1), opacity .3s ease;
     opacity:0;
   }
-  .pwa-banner.show{
-    transform:translate(-50%,0);
-    opacity:1;
-  }
+  .pwa-banner.show{transform:translate(-50%,0);opacity:1;}
   .pwa-banner .pwa-icon{
     width:46px;height:46px;border-radius:12px;flex-shrink:0;
-    overflow:hidden;
-    background:var(--surface-2);
+    overflow:hidden;background:var(--surface-2);
   }
-  .pwa-banner .pwa-icon img{
-    width:100%;height:100%;object-fit:cover;display:block;
-  }
-  .pwa-banner .pwa-text{
-    display:flex;flex-direction:column;gap:2px;min-width:0;
-  }
-  .pwa-banner .pwa-text strong{
-    font-size:14px;font-weight:600;color:var(--text);
-  }
-  .pwa-banner .pwa-text span{
-    font-size:12px;color:var(--text-muted);
-  }
-  .pwa-banner .pwa-actions{
-    display:flex;gap:8px;flex-shrink:0;
-  }
-  .pwa-banner button{
-    padding:8px 14px;
-    font-size:13px;
-    border-radius:9px;
-  }
+  .pwa-banner .pwa-icon img{width:100%;height:100%;object-fit:cover;display:block;}
+  .pwa-banner .pwa-text{display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .pwa-banner .pwa-text strong{font-size:14px;font-weight:600;color:var(--text);}
+  .pwa-banner .pwa-text span{font-size:12px;color:var(--text-muted);}
+  .pwa-banner .pwa-actions{display:flex;gap:8px;flex-shrink:0;}
+  .pwa-banner button{padding:8px 14px;font-size:13px;border-radius:9px;}
   .pwa-banner .pwa-install{
-    background:var(--accent);
-    color:var(--accent-ink);
-    border-color:var(--accent);
-    font-weight:600;
+    background:var(--accent);color:var(--accent-ink);
+    border-color:var(--accent);font-weight:600;
   }
   @media (max-width:480px){
     .pwa-banner{
-      flex-direction:column;
-      align-items:stretch;
-      text-align:center;
-      gap:12px;
-      padding:16px;
+      flex-direction:column;align-items:stretch;text-align:center;
+      gap:12px;padding:16px;
     }
     .pwa-banner .pwa-icon{align-self:center;}
     .pwa-banner .pwa-text{align-items:center;}
@@ -398,8 +472,7 @@
   /* Toast */
   .toast{
     position:fixed;
-    left:50%;
-    top:24px;
+    left:50%;top:24px;
     transform:translate(-50%,-140%);
     background:var(--surface);
     border:1px solid var(--border);
@@ -413,7 +486,16 @@
     max-width:calc(100vw - 32px);
   }
   .toast.show{transform:translate(-50%,0);}
-  .lxh-logo-wrap{position:fixed; left:10vw; bottom:15vh;}
+
+  @media (max-width:560px){
+    .topbar{padding:14px 16px 6px;}
+    .sensitivity-bar{padding:6px 16px 8px;}
+    .sensitivity input[type=range]{width:110px;}
+    .display-screen{padding:8px 16px;}
+    .card{width:112px;height:148px;}
+    .card-scroller{padding:14px 16px 8px;gap:12px;}
+    .gallery-head{padding:0 16px 6px;}
+  }
 </style>
 </head>
 <body>
@@ -434,7 +516,20 @@
 </div>
 
 <main id="stage" class="checker">
-  <div class="toolbar" id="resultToolbar" style="display:none;">
+  <!-- Top bar: app name + actions -->
+  <div class="topbar">
+    <div class="app-title">
+      <span class="dot"></span>
+      BgRemove-lxh <span>· by localXhost</span>
+    </div>
+    <div class="actions">
+      <button id="resetBtn" class="danger" disabled>Reset</button>
+      <button id="downloadBtn" class="primary" disabled>Download PNG</button>
+    </div>
+  </div>
+
+  <!-- Sensitivity bar (below topbar, on the left, away from logo) -->
+  <div class="sensitivity-bar" id="sensitivityBar">
     <div class="sensitivity">
       <label for="thresholdInput">Sensitivity</label>
       <button type="button" class="step-btn" id="thresholdMinus">&minus;</button>
@@ -442,57 +537,50 @@
       <button type="button" class="step-btn" id="thresholdPlus">&plus;</button>
       <span class="val" id="thresholdVal">42</span>
     </div>
-    <button id="changeImageBtn">Change image</button>
-    <button id="resetBtn" class="danger">Reset</button>
-    <button id="downloadBtn" class="primary" disabled>Download PNG</button>
   </div>
 
-  <div class="canvas">
-    <div class="empty-state" id="emptyState">
-      <h1>Drop the background. Keep the subject.</h1>
-      <p>Open your gallery and pick a photo with a plain, solid-colored background. Everything runs locally in your browser, right on this page.</p>
-      <button class="primary" id="openGalleryBtn">Open gallery</button>
+  <!-- Main: display screen (relative) + gallery dock -->
+  <div class="main">
+    <div class="display-screen">
+      <div class="empty-state" id="emptyState">
+        <h1>Drop the background. Keep the subject.</h1>
+        <p>Pick a photo from the album below. Everything runs locally in your browser — no uploads, no servers.</p>
+      </div>
+      <div class="image-frame" id="imageFrame">
+        <canvas id="resultCanvas"></canvas>
+      </div>
+      <div class="loading-inline" id="loadingInline">
+        <p id="loadingLabel">Removing background…</p>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-percent" id="progressPercent">0%</div>
+      </div>
     </div>
-    <div class="image-frame" id="imageFrame">
-      <canvas id="resultCanvas"></canvas>
+
+    <!-- Gallery album dock -->
+    <div class="gallery-dock">
+      <div class="gallery-head">
+        <h2>Your album</h2>
+        <span class="hint">swipe →</span>
+      </div>
+      <div class="card-scroller" id="cardScroller">
+        <div class="card add-card" id="addCard">
+          <div class="plus">+</div>
+          <div>Add image</div>
+        </div>
+      </div>
     </div>
   </div>
 </main>
 
-<!-- Gallery overlay -->
-<div class="overlay" id="galleryOverlay">
-  <div class="panel">
-    <div class="panel-head">
-      <h2>Your gallery</h2>
-      <button class="icon-btn" id="closeGalleryBtn">&times;</button>
-    </div>
-    <div class="dropzone" id="dropzone">
-      <p><strong>Drag images here</strong><br>or click to browse</p>
-    </div>
-    <div class="thumb-grid" id="thumbGrid">
-      <div class="thumb-empty" id="thumbEmpty">Added images appear here</div>
-    </div>
-  </div>
-</div>
-
-<!-- Loading overlay -->
-<div class="overlay" id="loadingOverlay">
-  <div class="panel loading-panel">
-    <p id="loadingLabel">Removing background…</p>
-    <div class="progress-track">
-      <div class="progress-fill" id="progressFill"></div>
-    </div>
-    <div class="progress-percent" id="progressPercent">0%</div>
-  </div>
-</div>
-
 <!-- PWA install banner -->
 <div class="pwa-banner" id="pwaBanner" role="dialog" aria-label="Install app">
   <div class="pwa-icon">
-    <img src="https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg" alt="BgRemove icon">
+    <img src="https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg" alt="BgRemove-lxh icon">
   </div>
   <div class="pwa-text">
-    <strong>Install BgRemove</strong>
+    <strong>Install BgRemove-lxh</strong>
     <span>Run it offline, right from your home screen.</span>
   </div>
   <div class="pwa-actions">
@@ -523,9 +611,7 @@ function showPwaBanner(){
   if(isStandalone || pwaDismissed) return;
   pwaBanner.classList.add('show');
 }
-function hidePwaBanner(){
-  pwaBanner.classList.remove('show');
-}
+function hidePwaBanner(){ pwaBanner.classList.remove('show'); }
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
@@ -537,9 +623,7 @@ pwaInstall.addEventListener('click', async () => {
   if(deferredPrompt){
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if(outcome === 'accepted'){
-      showToast('Installing…');
-    }
+    if(outcome === 'accepted') showToast('Installing…');
     deferredPrompt = null;
     hidePwaBanner();
     return;
@@ -563,15 +647,10 @@ window.addEventListener('appinstalled', () => {
   showToast('App installed ✓');
 });
 
-/* Fallback: if no beforeinstallprompt after a delay (iOS / already installable),
-   show banner with instructions */
 setTimeout(() => {
-  if(!isStandalone && !pwaDismissed && !deferredPrompt){
-    showPwaBanner();
-  }
+  if(!isStandalone && !pwaDismissed && !deferredPrompt) showPwaBanner();
 }, 3500);
 
-/* Register service worker */
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -593,22 +672,17 @@ const emptyState = document.getElementById('emptyState');
 const imageFrame = document.getElementById('imageFrame');
 const resultCanvas = document.getElementById('resultCanvas');
 const resultCtx = resultCanvas.getContext('2d');
-const resultToolbar = document.getElementById('resultToolbar');
-const openGalleryBtn = document.getElementById('openGalleryBtn');
-const changeImageBtn = document.getElementById('changeImageBtn');
+const sensitivityBar = document.getElementById('sensitivityBar');
 const resetBtn = document.getElementById('resetBtn');
 const downloadBtn = document.getElementById('downloadBtn');
 const thresholdInput = document.getElementById('thresholdInput');
 const thresholdVal = document.getElementById('thresholdVal');
 
-const galleryOverlay = document.getElementById('galleryOverlay');
-const closeGalleryBtn = document.getElementById('closeGalleryBtn');
-const dropzone = document.getElementById('dropzone');
+const cardScroller = document.getElementById('cardScroller');
+const addCard = document.getElementById('addCard');
 const fileInput = document.getElementById('fileInput');
-const thumbGrid = document.getElementById('thumbGrid');
-const thumbEmpty = document.getElementById('thumbEmpty');
 
-const loadingOverlay = document.getElementById('loadingOverlay');
+const loadingInline = document.getElementById('loadingInline');
 const loadingLabel = document.getElementById('loadingLabel');
 const progressFill = document.getElementById('progressFill');
 const progressPercent = document.getElementById('progressPercent');
@@ -618,47 +692,62 @@ const MAX_DIM = 1600;
 let images = [];
 let idCounter = 0;
 let activeName = 'image';
+let activeId = null;
 let originalImageData = null;
 
-function openGallery(){ galleryOverlay.classList.add('open'); }
-function closeGallery(){ galleryOverlay.classList.remove('open'); }
 function setProgress(pct, label){
   progressFill.style.width = pct + '%';
   progressPercent.textContent = pct + '%';
   if(label) loadingLabel.textContent = label;
 }
-function showLoading(){ setProgress(0, 'Reading image…'); loadingOverlay.classList.add('open'); }
-function hideLoading(){ loadingOverlay.classList.remove('open'); }
+function showLoading(){ setProgress(0, 'Reading image…'); loadingInline.classList.add('show'); }
+function hideLoading(){ loadingInline.classList.remove('show'); }
 function nextFrame(){
   return new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
 }
 
-function renderThumbnails(){
-  thumbGrid.querySelectorAll('.thumb').forEach(el => el.remove());
-  thumbEmpty.style.display = images.length ? 'none' : 'block';
+/* ===== Gallery (album) ===== */
+function renderAlbum(){
+  cardScroller.querySelectorAll('.card:not(.add-card)').forEach(el => el.remove());
   images.forEach(item => {
-    const div = document.createElement('div');
-    div.className = 'thumb';
+    const card = document.createElement('div');
+    card.className = 'card' + (item.id === activeId ? ' active' : '');
+    card.dataset.id = item.id;
     const img = document.createElement('img');
     img.src = item.url;
     img.alt = item.name;
-    div.appendChild(img);
-    div.addEventListener('click', () => selectImage(item.id));
-    thumbGrid.appendChild(div);
+    card.appendChild(img);
+    const label = document.createElement('div');
+    label.className = 'card-name';
+    label.textContent = item.name;
+    card.appendChild(label);
+    card.addEventListener('click', () => selectImage(item.id));
+    cardScroller.insertBefore(card, addCard);
   });
 }
 
 function handleFiles(fileList){
+  const added = [];
   Array.from(fileList).forEach(file => {
     if(!file.type.startsWith('image/')) return;
-    images.push({
+    const item = {
       id: idCounter++,
       file,
       url: URL.createObjectURL(file),
       name: file.name
-    });
+    };
+    images.push(item);
+    added.push(item);
   });
-  renderThumbnails();
+  if(!added.length) return;
+  renderAlbum();
+  /* auto-scroll to the newest card */
+  requestAnimationFrame(() => {
+    const last = cardScroller.querySelector('.card:not(.add-card):last-of-type');
+    if(last) last.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+  });
+  /* auto-select the newest image */
+  selectImage(added[added.length - 1].id);
 }
 
 function loadImageElement(url){
@@ -670,6 +759,7 @@ function loadImageElement(url){
   });
 }
 
+/* ===== Background removal ===== */
 function buildMask(imageData, threshold){
   const { data, width, height } = imageData;
   const out = new Uint8ClampedArray(data);
@@ -743,11 +833,17 @@ function renderWithThreshold(threshold){
 async function selectImage(id){
   const item = images.find(i => i.id === id);
   if(!item) return;
-  closeGallery();
+  activeId = id;
+  /* update active card highlight */
+  cardScroller.querySelectorAll('.card').forEach(c => {
+    c.classList.toggle('active', Number(c.dataset.id) === id);
+  });
+
   activeName = item.name.replace(/\.[^/.]+$/, '') || 'image';
   emptyState.style.display = 'none';
   imageFrame.style.display = 'none';
-  resultToolbar.style.display = 'flex';
+  sensitivityBar.classList.add('show');
+  resetBtn.disabled = false;
   downloadBtn.disabled = true;
   showLoading();
   try{
@@ -785,68 +881,17 @@ async function selectImage(id){
 function resetStage(){
   emptyState.style.display = 'block';
   imageFrame.style.display = 'none';
-  resultToolbar.style.display = 'none';
+  sensitivityBar.classList.remove('show');
   resultCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
   downloadBtn.disabled = true;
+  resetBtn.disabled = true;
   originalImageData = null;
+  activeId = null;
+  cardScroller.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
 }
 
-openGalleryBtn.addEventListener('click', openGallery);
-changeImageBtn.addEventListener('click', openGallery);
-closeGalleryBtn.addEventListener('click', closeGallery);
-resetBtn.addEventListener('click', () => { resetStage(); closeGallery(); });
-
-dropzone.addEventListener('click', () => fileInput.click());
+/* ===== Events ===== */
+addCard.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', e => {
   handleFiles(e.target.files);
-  fileInput.value = '';
-});
-dropzone.addEventListener('dragover', e => {
-  e.preventDefault();
-  dropzone.classList.add('drag');
-});
-dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
-dropzone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropzone.classList.remove('drag');
-  handleFiles(e.dataTransfer.files);
-});
-
-let thresholdRaf = null;
-function applyThresholdUpdate(){
-  thresholdVal.textContent = thresholdInput.value;
-  if(thresholdRaf) cancelAnimationFrame(thresholdRaf);
-  thresholdRaf = requestAnimationFrame(() => renderWithThreshold(Number(thresholdInput.value)));
-}
-thresholdInput.addEventListener('input', applyThresholdUpdate);
-
-const thresholdMinus = document.getElementById('thresholdMinus');
-const thresholdPlus = document.getElementById('thresholdPlus');
-function stepThreshold(delta){
-  const min = Number(thresholdInput.min), max = Number(thresholdInput.max);
-  const next = Math.min(max, Math.max(min, Number(thresholdInput.value) + delta));
-  thresholdInput.value = next;
-  applyThresholdUpdate();
-}
-thresholdMinus.addEventListener('click', () => stepThreshold(-1));
-thresholdPlus.addEventListener('click', () => stepThreshold(1));
-
-downloadBtn.addEventListener('click', () => {
-  resultCanvas.toBlob(blob => {
-    if(!blob) return;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = activeName + '-nobg.png';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }, 'image/png');
-});
-
-document.addEventListener('keydown', e => {
-  if(e.key === 'Escape') closeGallery();
-});
-</script>
-
-</body>
-</html>
+  fileInput.value
