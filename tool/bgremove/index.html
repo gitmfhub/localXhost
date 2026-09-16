@@ -2,555 +2,672 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
-<title>localXhost-bgRemove</title>
-
-<!-- PWA -->
-<link rel="manifest" href="/localXhost/tool/bgremove/manifest.json">
-<meta name="theme-color" content="#000000">
-<link rel="icon" type="image/jpeg" href="https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BgRemove — localXhost</title>
+<meta name="description" content="Remove image backgrounds instantly, right in your browser.">
+<meta name="theme-color" content="#0c0d10">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg">
 <link rel="apple-touch-icon" href="https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="bgRemove">
-
 <style>
-  *,*::before,*::after{box-sizing:border-box}
-  [hidden]{display:none !important}
-  html,body{margin:0;padding:0}
+  :root{
+    --bg:#0c0d10;
+    --surface:#16181c;
+    --surface-2:#1f2126;
+    --border:#2a2d33;
+    --text:#f2f3f5;
+    --text-muted:#8b8f98;
+    --accent:#b6ff6e;
+    --accent-ink:#0c0d10;
+    --danger:#ff7a59;
+    --radius:14px;
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
   body{
-    background:#000;
-    color:#e9e9e9;
-    font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    min-height:100vh;
-    -webkit-font-smoothing:antialiased;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font);
+    overflow:hidden;
   }
-  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 64px}
-
-  /* ---------- header ---------- */
-  header{display:flex;align-items:center;gap:14px;margin-bottom:26px}
-  .logo{height:42px;width:auto;display:block;border-radius:6px}
-  .headText{flex:1;min-width:0}
-  h1{margin:0;font-size:17px;font-weight:600;letter-spacing:.2px}
-  .sub{margin:3px 0 0;font-size:12px;color:#6b6b6b}
-
-  /* ---------- install button ---------- */
-  .install{
-    flex:none;
-    background:transparent;color:#e9e9e9;
-    border:1px solid #2a2a2a;border-radius:8px;
-    padding:7px 12px;font-size:12px;font-weight:600;
-    cursor:pointer;transition:background .15s,border-color .15s;
-    display:inline-flex;align-items:center;gap:6px;
-  }
-  .install:hover{background:#141414;border-color:#3a3a3a}
-  .install svg{width:13px;height:13px;fill:currentColor}
-
-  /* ---------- iOS hint ---------- */
-  .iosHint{
-    margin:0 0 18px;
-    padding:11px 14px;
-    background:#0a0a0a;border:1px solid #1a1a1a;border-radius:10px;
-    font-size:12px;color:#9a9a9a;line-height:1.5;
-  }
-  .iosHint b{color:#e9e9e9;font-weight:600}
-  .iosHint button{
-    background:none;border:0;color:#3ea6ff;font:inherit;cursor:pointer;
-    padding:0;margin-left:6px;text-decoration:underline;
-  }
-
-  /* ---------- drop zone ---------- */
-  .drop{
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
-    padding:36px 20px;
-    border:1px dashed #262626;border-radius:12px;background:#080808;
-    cursor:pointer;text-align:center;
-    transition:border-color .15s,background .15s;
-  }
-  .drop:hover,.drop.over{border-color:#3ea6ff;background:#0a1017}
-  .drop b{color:#e9e9e9;font-weight:600}
-  .drop span{font-size:14px;color:#cfcfcf}
-  .drop small{font-size:11px;color:#666}
-  #file{display:none}
-
-  /* ---------- toolbar ---------- */
-  .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:20px 0 16px}
-  .tol{display:flex;align-items:center;gap:9px;font-size:12px;color:#8a8a8a;user-select:none}
-  .tol output{color:#cfcfcf;min-width:18px;display:inline-block;text-align:right}
-  input[type=range]{
-    width:132px;accent-color:#3ea6ff;background:transparent;cursor:pointer;
-  }
-  .btn{
-    background:#fff;color:#000;border:0;border-radius:8px;
-    padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;
-    transition:background .15s;
-  }
-  .btn:hover{background:#d6d6d6}
-
-  /* ---------- grid ---------- */
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
-  .card{background:#0a0a0a;border:1px solid #1a1a1a;border-radius:12px;overflow:hidden}
-  .thumb{
-    display:flex;align-items:center;justify-content:center;
-    min-height:150px;padding:8px;
-    background-color:#070707;
+  .checker{
+    background-color:#1a1c20;
     background-image:
-      linear-gradient(45deg,#141414 25%,transparent 25%),
-      linear-gradient(-45deg,#141414 25%,transparent 25%),
-      linear-gradient(45deg,transparent 75%,#141414 75%),
-      linear-gradient(-45deg,transparent 75%,#141414 75%);
-    background-size:16px 16px;
-    background-position:0 0,0 8px,8px -8px,-8px 0;
+      linear-gradient(45deg,#26292f 25%,transparent 25%),
+      linear-gradient(-45deg,#26292f 25%,transparent 25%),
+      linear-gradient(45deg,transparent 75%,#26292f 75%),
+      linear-gradient(-45deg,transparent 75%,#26292f 75%);
+    background-size:28px 28px;
+    background-position:0 0,0 14px,14px -14px,-14px 0;
   }
-  .thumb canvas{max-width:100%;max-height:260px;display:block}
-  .meta{display:flex;align-items:center;gap:8px;padding:10px;border-top:1px solid #161616}
-  .name{
-    flex:1;font-size:11px;color:#7d7d7d;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  #stage{
+    position:fixed;
+    inset:0;
+    display:flex;
+    flex-direction:column;
   }
-  .dl{
-    flex:none;background:#161616;color:#e9e9e9;border:1px solid #262626;
-    border-radius:7px;padding:6px 11px;font-size:12px;cursor:pointer;
-    transition:background .15s,border-color .15s;
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:20px 28px;
+    z-index:2;
+    gap:16px;
+    flex-wrap:wrap;
   }
-  .dl:hover:not(:disabled){background:#1f1f1f;border-color:#333}
-  .dl:disabled{opacity:.4;cursor:default}
-
-  #status{font-size:12px;color:#6b6b6b;margin:12px 0 0;min-height:16px}
-
-  /* ---------- mobile tweaks ---------- */
-  @media (max-width:520px){
-    .wrap{padding:20px 14px 48px}
-    .logo{height:34px}
-    h1{font-size:15px}
-    .sub{font-size:11px}
-    .install{padding:6px 10px;font-size:11px}
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .brand img{
+    height:28px;
+    width:auto;
+    display:block;
+    border-radius:6px;
+  }
+  .brand-name{
+    font-weight:700;
+    font-size:18px;
+    letter-spacing:-0.01em;
+  }
+  .brand-name span{
+    color:var(--text-muted);
+    font-weight:400;
+    font-size:13px;
+    margin-left:6px;
+  }
+  .toolbar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .sensitivity{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:8px 14px;
+  }
+  .sensitivity label{
+    font-size:13px;
+    color:var(--text-muted);
+    white-space:nowrap;
+  }
+  .sensitivity input[type=range]{
+    width:120px;
+    accent-color:var(--accent);
+  }
+  .step-btn{
+    width:24px;
+    height:24px;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:6px;
+    font-size:15px;
+    line-height:1;
+    background:var(--surface-2);
+  }
+  .sensitivity .val{
+    font-size:12px;
+    color:var(--text-muted);
+    min-width:26px;
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+  button{
+    font-family:var(--font);
+    font-size:14px;
+    font-weight:500;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--text);
+    padding:10px 16px;
+    cursor:pointer;
+    transition:transform .15s ease, background .15s ease, border-color .15s ease;
+  }
+  button:hover{
+    background:var(--surface-2);
+    border-color:#3a3e46;
+  }
+  button:active{
+    transform:scale(0.97);
+  }
+  button:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+  }
+  button.primary{
+    background:var(--accent);
+    color:var(--accent-ink);
+    border-color:var(--accent);
+    font-weight:600;
+  }
+  button.primary:hover{
+    filter:brightness(1.06);
+  }
+  button.danger{
+    color:var(--danger);
+  }
+  button:disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+  }
+  .canvas{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    padding:24px;
+  }
+  .empty-state{
+    text-align:center;
+    max-width:420px;
+  }
+  .empty-state h1{
+    font-size:34px;
+    line-height:1.15;
+    font-weight:700;
+    margin:0 0 14px;
+    letter-spacing:-0.01em;
+  }
+  .empty-state p{
+    color:var(--text-muted);
+    font-size:15px;
+    line-height:1.6;
+    margin:0 0 26px;
+  }
+  .image-frame{
+    max-width:100%;
+    max-height:100%;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    border-radius:18px;
+    overflow:hidden;
+  }
+  .image-frame canvas{
+    max-width:100%;
+    max-height:calc(100vh - 140px);
+    width:auto;
+    height:auto;
+    display:block;
+  }
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(8,9,11,0.72);
+    backdrop-filter:blur(6px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:10;
+    padding:20px;
+  }
+  .overlay.open{
+    display:flex;
+  }
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    width:100%;
+    max-width:560px;
+    padding:26px;
+  }
+  .panel-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:18px;
+  }
+  .panel-head h2{
+    font-size:19px;
+    font-weight:700;
+    margin:0;
+  }
+  .icon-btn{
+    background:transparent;
+    border:none;
+    color:var(--text-muted);
+    font-size:20px;
+    line-height:1;
+    padding:4px 8px;
+  }
+  .icon-btn:hover{
+    color:var(--text);
+    background:transparent;
+  }
+  .dropzone{
+    border:1.5px dashed var(--border);
+    border-radius:12px;
+    padding:32px 20px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .dropzone:hover,.dropzone.drag{
+    border-color:var(--accent);
+    background:rgba(182,255,110,0.05);
+  }
+  .dropzone p{
+    margin:0;
+    color:var(--text-muted);
+    font-size:14px;
+  }
+  .dropzone p strong{
+    color:var(--text);
+    font-weight:500;
+  }
+  .thumb-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+    margin-top:18px;
+  }
+  .thumb{
+    aspect-ratio:1/1;
+    border-radius:10px;
+    overflow:hidden;
+    cursor:pointer;
+    border:1px solid var(--border);
+    position:relative;
+  }
+  .thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .thumb:hover{
+    border-color:var(--accent);
+  }
+  .thumb-empty{
+    grid-column:1/-1;
+    color:var(--text-muted);
+    font-size:13px;
+    text-align:center;
+    padding:18px 0 4px;
+  }
+  .loading-panel{
+    width:100%;
+    max-width:340px;
+    text-align:center;
+  }
+  .loading-panel p{
+    font-size:14px;
+    color:var(--text-muted);
+    margin:0 0 16px;
+  }
+  .progress-track{
+    height:6px;
+    border-radius:6px;
+    background:var(--surface-2);
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    width:0%;
+    background:var(--accent);
+    border-radius:6px;
+    transition:width .2s ease;
+  }
+  .progress-percent{
+    margin-top:10px;
+    font-size:12px;
+    color:var(--text-muted);
+    font-variant-numeric:tabular-nums;
   }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <header>
-    <img class="logo" alt="localXhost"
-         src="https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg"
-         onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22320%22 height=%22180%22><rect width=%22320%22 height=%22180%22 fill=%22%23000000%22/><text x=%22160%22 y=%22102%22 font-family=%22Arial,Helvetica,sans-serif%22 font-size=%2230%22 fill=%22%23ffffff%22 text-anchor=%22middle%22>localXhost</text></svg>'">
-    <div class="headText">
-      <h1>localXhost-bgRemove</h1>
-      <p class="sub">Remove image backgrounds — 100% offline, in your browser.</p>
+<main id="stage" class="checker">
+  <div class="topbar">
+    <div class="brand">
+      <img src="https://gitmfhub.github.io/localXhost/asset/images/localxhost16-9.png" alt="localXhost">
+      <div class="brand-name">BgRemove<span>by localXhost</span></div>
     </div>
-    <button class="install" id="installBtn" type="button" hidden>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v9.59l3.3-3.3a1 1 0 1 1 1.4 1.42l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 1 1 1.4-1.42l3.3 3.3V4a1 1 0 0 1 1-1zM4 18a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1z"/></svg>
-      Install App
-    </button>
-  </header>
-
-  <div class="iosHint" id="iosHint" hidden>
-    <b>Install on iPhone / iPad:</b> tap the Share button in Safari, then choose
-    <b>“Add to Home Screen”</b>.
-    <button type="button" id="iosDismiss">Got it</button>
+    <div class="toolbar" id="resultToolbar" style="display:none;">
+      <div class="sensitivity">
+        <label for="thresholdInput">Sensitivity</label>
+        <button type="button" class="step-btn" id="thresholdMinus">&minus;</button>
+        <input type="range" id="thresholdInput" min="15" max="110" value="42">
+        <button type="button" class="step-btn" id="thresholdPlus">&plus;</button>
+        <span class="val" id="thresholdVal">42</span>
+      </div>
+      <button id="changeImageBtn">Change image</button>
+      <button id="resetBtn" class="danger">Reset</button>
+      <button id="downloadBtn" class="primary" disabled>Download PNG</button>
+    </div>
   </div>
 
-  <label class="drop" id="drop">
-    <input type="file" id="file" accept="image/png,image/jpeg,image/jpg" multiple>
-    <span>Drop images here or <b>click to browse</b></span>
-    <small>JPG, PNG · images never leave your device</small>
-  </label>
-
-  <div class="bar" id="bar" hidden>
-    <label class="tol">
-      Tolerance
-      <input type="range" id="tolerance" min="10" max="90" step="1" value="32">
-      <output id="tolVal">32</output>
-    </label>
-    <button class="btn" id="downloadAll">Download All</button>
+  <div class="canvas">
+    <div class="empty-state" id="emptyState">
+      <h1>Drop the background. Keep the subject.</h1>
+      <p>Open your gallery and pick a photo with a plain, solid-colored background. Everything runs locally in your browser, right on this page.</p>
+      <button class="primary" id="openGalleryBtn">Open gallery</button>
+    </div>
+    <div class="image-frame" id="imageFrame">
+      <canvas id="resultCanvas"></canvas>
+    </div>
   </div>
+</main>
 
-  <div class="grid" id="grid"></div>
-  <p id="status"></p>
-
+<div class="overlay" id="galleryOverlay">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Your gallery</h2>
+      <button class="icon-btn" id="closeGalleryBtn">&times;</button>
+    </div>
+    <div class="dropzone" id="dropzone">
+      <p><strong>Drag images here</strong><br>or click to browse</p>
+    </div>
+    <div class="thumb-grid" id="thumbGrid">
+      <div class="thumb-empty" id="thumbEmpty">Added images appear here</div>
+    </div>
+  </div>
 </div>
 
+<div class="overlay" id="loadingOverlay">
+  <div class="panel loading-panel">
+    <p id="loadingLabel">Removing background…</p>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-percent" id="progressPercent">0%</div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept="image/*" multiple hidden>
+
 <script>
-(function () {
-  "use strict";
+  const emptyState = document.getElementById('emptyState');
+  const imageFrame = document.getElementById('imageFrame');
+  const resultCanvas = document.getElementById('resultCanvas');
+  const resultCtx = resultCanvas.getContext('2d');
+  const resultToolbar = document.getElementById('resultToolbar');
+  const openGalleryBtn = document.getElementById('openGalleryBtn');
+  const changeImageBtn = document.getElementById('changeImageBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const thresholdInput = document.getElementById('thresholdInput');
+  const thresholdVal = document.getElementById('thresholdVal');
 
-  var MAX_DIM = 2000; // cap processing size for speed
+  const galleryOverlay = document.getElementById('galleryOverlay');
+  const closeGalleryBtn = document.getElementById('closeGalleryBtn');
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const thumbGrid = document.getElementById('thumbGrid');
+  const thumbEmpty = document.getElementById('thumbEmpty');
 
-  var fileInput   = document.getElementById('file');
-  var dropZone    = document.getElementById('drop');
-  var grid        = document.getElementById('grid');
-  var bar         = document.getElementById('bar');
-  var statusEl    = document.getElementById('status');
-  var tolInput    = document.getElementById('tolerance');
-  var tolVal      = document.getElementById('tolVal');
-  var downloadAll = document.getElementById('downloadAll');
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  const loadingLabel = document.getElementById('loadingLabel');
+  const progressFill = document.getElementById('progressFill');
+  const progressPercent = document.getElementById('progressPercent');
 
-  var items = [];      // { name, canvas, origData, blobUrl, dl }
-  var tolTimer = null;
+  const MAX_DIM = 1600;
 
-  /* ------------------------------------------------------------------ */
-  /* helpers                                                             */
-  /* ------------------------------------------------------------------ */
+  let images = [];
+  let idCounter = 0;
+  let activeName = 'image';
+  let originalImageData = null;
 
-  function loadImage(file) {
-    return new Promise(function (resolve, reject) {
-      var url = URL.createObjectURL(file);
-      var img = new Image();
-      img.onload = function () { URL.revokeObjectURL(url); resolve(img); };
-      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('Cannot read ' + file.name)); };
+  function openGallery(){
+    galleryOverlay.classList.add('open');
+  }
+  function closeGallery(){
+    galleryOverlay.classList.remove('open');
+  }
+  function setProgress(pct, label){
+    progressFill.style.width = pct + '%';
+    progressPercent.textContent = pct + '%';
+    if(label) loadingLabel.textContent = label;
+  }
+  function showLoading(){
+    setProgress(0, 'Reading image…');
+    loadingOverlay.classList.add('open');
+  }
+  function hideLoading(){
+    loadingOverlay.classList.remove('open');
+  }
+  function nextFrame(){
+    return new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
+  }
+
+  function renderThumbnails(){
+    thumbGrid.querySelectorAll('.thumb').forEach(el => el.remove());
+    thumbEmpty.style.display = images.length ? 'none' : 'block';
+    images.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'thumb';
+      const img = document.createElement('img');
+      img.src = item.url;
+      img.alt = item.name;
+      div.appendChild(img);
+      div.addEventListener('click', () => selectImage(item.id));
+      thumbGrid.appendChild(div);
+    });
+  }
+
+  function handleFiles(fileList){
+    Array.from(fileList).forEach(file => {
+      if(!file.type.startsWith('image/')) return;
+      images.push({
+        id: idCounter++,
+        file,
+        url: URL.createObjectURL(file),
+        name: file.name
+      });
+    });
+    renderThumbnails();
+  }
+
+  function loadImageElement(url){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
       img.src = url;
     });
   }
 
-  function cloneImageData(src) {
-    try {
-      return new ImageData(new Uint8ClampedArray(src.data), src.width, src.height);
-    } catch (e) {
-      var c = document.createElement('canvas');
-      c.width = src.width; c.height = src.height;
-      var out = c.getContext('2d').createImageData(src.width, src.height);
-      out.data.set(src.data);
-      return out;
+  function buildMask(imageData, threshold){
+    const { data, width, height } = imageData;
+    const out = new Uint8ClampedArray(data);
+    const total = width * height;
+    const visited = new Uint8Array(total);
+    const queue = new Int32Array(total);
+    let qHead = 0, qTail = 0;
+
+    let rSum = 0, gSum = 0, bSum = 0, count = 0;
+    for(let x = 0; x < width; x++){
+      count += 2;
+      let p = (x) * 4; rSum += data[p]; gSum += data[p+1]; bSum += data[p+2];
+      p = ((height - 1) * width + x) * 4; rSum += data[p]; gSum += data[p+1]; bSum += data[p+2];
     }
-  }
-
-  function outName(name) {
-    return name.replace(/\.[^.]+$/, '') + '-bgremoved.png';
-  }
-
-  function triggerDownload(url, filename) {
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
-
-  /* ------------------------------------------------------------------ */
-  /* background removal (offline, pure canvas)                           */
-  /* ------------------------------------------------------------------ */
-
-  function removeBackground(imgData, tol) {
-    var w = imgData.width, h = imgData.height, d = imgData.data, total = w * h;
-
-    var mask    = new Uint8Array(total);   // 1 = background
-    var visited = new Uint8Array(total);
-    var queue   = new Int32Array(total);
-    var qh = 0, qt = 0;
-
-    var t2  = tol * tol * 3;                       // local colour threshold
-    var g2  = (tol * 2.6) * (tol * 2.6) * 3;       // global drift guard
-
-    /* average colour of the border */
-    var sr = 0, sg = 0, sb = 0, n = 0, p;
-    for (var x = 0; x < w; x++) {
-      p = x * 4;                    sr += d[p]; sg += d[p + 1]; sb += d[p + 2]; n++;
-      p = ((h - 1) * w + x) * 4;    sr += d[p]; sg += d[p + 1]; sb += d[p + 2]; n++;
+    for(let y = 0; y < height; y++){
+      count += 2;
+      let p = (y * width) * 4; rSum += data[p]; gSum += data[p+1]; bSum += data[p+2];
+      p = (y * width + width - 1) * 4; rSum += data[p]; gSum += data[p+1]; bSum += data[p+2];
     }
-    for (var y = 0; y < h; y++) {
-      p = (y * w) * 4;              sr += d[p]; sg += d[p + 1]; sb += d[p + 2]; n++;
-      p = (y * w + w - 1) * 4;      sr += d[p]; sg += d[p + 1]; sb += d[p + 2]; n++;
+    const refR = rSum / count, refG = gSum / count, refB = bSum / count;
+
+    function dist(idx){
+      const p = idx * 4;
+      const dr = data[p] - refR, dg = data[p+1] - refG, db = data[p+2] - refB;
+      return Math.sqrt(dr*dr + dg*dg + db*db);
     }
-    var ar = sr / n, ag = sg / n, ab = sb / n;
-
-    /* seed every border pixel as background */
-    function seed(i) {
-      if (!visited[i]) { visited[i] = 1; mask[i] = 1; queue[qt++] = i; }
-    }
-    for (var bx = 0; bx < w; bx++) { seed(bx); seed((h - 1) * w + bx); }
-    for (var by = 0; by < h; by++) { seed(by * w); seed(by * w + w - 1); }
-
-    /* flood fill */
-    while (qh < qt) {
-      var i = queue[qh++];
-      var pp = i * 4;
-      var r = d[pp], g = d[pp + 1], b = d[pp + 2];
-      var cx = i % w;
-      var cy = (i - cx) / w;
-
-      for (var k = 0; k < 4; k++) {
-        var ni;
-        if (k === 0)      { if (cx === 0)     continue; ni = i - 1; }
-        else if (k === 1) { if (cx === w - 1) continue; ni = i + 1; }
-        else if (k === 2) { if (cy === 0)     continue; ni = i - w; }
-        else              { if (cy === h - 1) continue; ni = i + w; }
-
-        if (visited[ni]) continue;
-
-        var q = ni * 4;
-        var dr = d[q] - r, dg = d[q + 1] - g, db = d[q + 2] - b;
-        if (dr * dr + dg * dg + db * db > t2) continue;
-
-        var er = d[q] - ar, eg = d[q + 1] - ag, eb = d[q + 2] - ab;
-        if (er * er + eg * eg + eb * eb > g2) continue;
-
-        visited[ni] = 1; mask[ni] = 1; queue[qt++] = ni;
+    function trySeed(x, y){
+      const idx = y * width + x;
+      if(visited[idx]) return;
+      if(dist(idx) <= threshold){
+        visited[idx] = 1;
+        queue[qTail++] = idx;
       }
     }
+    for(let x = 0; x < width; x++){ trySeed(x, 0); trySeed(x, height - 1); }
+    for(let y = 0; y < height; y++){ trySeed(0, y); trySeed(width - 1, y); }
 
-    /* feather the edge (3x3 box blur on the mask, then remap) */
-    for (var fy = 0; fy < h; fy++) {
-      var y0 = fy > 0 ? fy - 1 : fy;
-      var y1 = fy < h - 1 ? fy + 1 : fy;
-      for (var fx = 0; fx < w; fx++) {
-        var x0 = fx > 0 ? fx - 1 : fx;
-        var x1 = fx < w - 1 ? fx + 1 : fx;
-        var sum = 0, c = 0;
-        for (var yy = y0; yy <= y1; yy++) {
-          var row = yy * w;
-          for (var xx = x0; xx <= x1; xx++) { sum += mask[row + xx]; c++; }
+    while(qHead < qTail){
+      const idx = queue[qHead++];
+      const x = idx % width, y = (idx / width) | 0;
+      if(x > 0){ const n = idx - 1; if(!visited[n] && dist(n) <= threshold){ visited[n] = 1; queue[qTail++] = n; } }
+      if(x < width - 1){ const n = idx + 1; if(!visited[n] && dist(n) <= threshold){ visited[n] = 1; queue[qTail++] = n; } }
+      if(y > 0){ const n = idx - width; if(!visited[n] && dist(n) <= threshold){ visited[n] = 1; queue[qTail++] = n; } }
+      if(y < height - 1){ const n = idx + width; if(!visited[n] && dist(n) <= threshold){ visited[n] = 1; queue[qTail++] = n; } }
+    }
+
+    const featherBand = Math.max(threshold * 0.6, 8);
+    for(let idx = 0; idx < total; idx++){
+      const p = idx * 4;
+      if(visited[idx]){
+        out[p+3] = 0;
+      } else {
+        const d = dist(idx);
+        if(d <= threshold + featherBand){
+          const t = Math.max(0, Math.min(1, (d - threshold) / featherBand));
+          out[p+3] = Math.round(255 * t);
         }
-        var bl = sum / c;
-        var a = (0.5 - bl) * 4 + 0.5;
-        a = a < 0 ? 0 : (a > 1 ? 1 : a);
-
-        var idx = (fy * w + fx) * 4 + 3;
-        var orig = d[idx];
-        d[idx] = Math.min(orig, Math.round(a * 255));
       }
     }
-
-    return imgData;
+    return new ImageData(out, width, height);
   }
 
-  /* ------------------------------------------------------------------ */
-  /* item handling                                                       */
-  /* ------------------------------------------------------------------ */
-
-  function processItem(item) {
-    var src = item.origData;
-    var out = cloneImageData(src);
-    removeBackground(out, parseInt(tolInput.value, 10));
-
-    var ctx = item.canvas.getContext('2d');
-    ctx.putImageData(out, 0, 0);
-
-    item.canvas.toBlob(function (blob) {
-      if (!blob) return;
-      if (item.blobUrl) URL.revokeObjectURL(item.blobUrl);
-      item.blobUrl = URL.createObjectURL(blob);
-      item.dl.disabled = false;
-    }, 'image/png');
+  function renderWithThreshold(threshold){
+    if(!originalImageData) return;
+    const masked = buildMask(originalImageData, threshold);
+    resultCanvas.width = masked.width;
+    resultCanvas.height = masked.height;
+    resultCtx.putImageData(masked, 0, 0);
   }
 
-  function addFile(file) {
-    return loadImage(file).then(function (img) {
-      var w = img.naturalWidth, h = img.naturalHeight;
-      var scale = Math.min(1, MAX_DIM / Math.max(w, h));
-      w = Math.max(1, Math.round(w * scale));
-      h = Math.max(1, Math.round(h * scale));
+  async function selectImage(id){
+    const item = images.find(i => i.id === id);
+    if(!item) return;
+    closeGallery();
+    activeName = item.name.replace(/\.[^/.]+$/, '') || 'image';
+    emptyState.style.display = 'none';
+    imageFrame.style.display = 'none';
+    resultToolbar.style.display = 'flex';
+    downloadBtn.disabled = true;
+    showLoading();
+    try{
+      await nextFrame();
+      const img = await loadImageElement(item.url);
+      let w = img.naturalWidth, h = img.naturalHeight;
+      const scale = Math.min(1, MAX_DIM / Math.max(w, h));
+      w = Math.round(w * scale);
+      h = Math.round(h * scale);
 
-      var canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      var ctx = canvas.getContext('2d', { willReadFrequently: true });
-      ctx.drawImage(img, 0, 0, w, h);
-      var origData = ctx.getImageData(0, 0, w, h);
+      setProgress(30, 'Preparing pixels…');
+      await nextFrame();
+      const source = document.createElement('canvas');
+      source.width = w;
+      source.height = h;
+      const sourceCtx = source.getContext('2d');
+      sourceCtx.drawImage(img, 0, 0, w, h);
+      originalImageData = sourceCtx.getImageData(0, 0, w, h);
 
-      /* --- card DOM --- */
-      var card  = document.createElement('div');
-      card.className = 'card';
+      setProgress(60, 'Removing background…');
+      await nextFrame();
+      renderWithThreshold(Number(thresholdInput.value));
 
-      var thumb = document.createElement('div');
-      thumb.className = 'thumb';
-      thumb.appendChild(canvas);
-
-      var meta  = document.createElement('div');
-      meta.className = 'meta';
-
-      var nameEl = document.createElement('div');
-      nameEl.className = 'name';
-      nameEl.textContent = file.name;
-      nameEl.title = file.name;
-
-      var dl = document.createElement('button');
-      dl.className = 'dl';
-      dl.type = 'button';
-      dl.textContent = 'Download';
-      dl.disabled = true;
-
-      meta.appendChild(nameEl);
-      meta.appendChild(dl);
-      card.appendChild(thumb);
-      card.appendChild(meta);
-      grid.appendChild(card);
-
-      var item = { name: file.name, canvas: canvas, origData: origData, blobUrl: null, dl: dl };
-      items.push(item);
-
-      dl.addEventListener('click', function () {
-        if (item.blobUrl) triggerDownload(item.blobUrl, outName(item.name));
-      });
-
-      processItem(item);
-    });
+      setProgress(100, 'Done');
+      imageFrame.style.display = 'flex';
+      downloadBtn.disabled = false;
+    }catch(err){
+      setProgress(0, 'Something went wrong. Try another image.');
+      await new Promise(r => setTimeout(r, 1400));
+      resetStage();
+    }
+    hideLoading();
   }
 
-  function handleFiles(fileList) {
-    var files = Array.prototype.slice.call(fileList).filter(function (f) {
-      return /^image\/(png|jpeg|jpg)$/i.test(f.type);
-    });
-    if (!files.length) return;
-
-    statusEl.textContent = 'Processing ' + files.length + ' image(s)…';
-
-    var chain = Promise.resolve();
-    files.forEach(function (file) {
-      chain = chain
-        .then(function () { return addFile(file); })
-        .then(function () { return new Promise(function (r) { setTimeout(r, 0); }); })
-        .catch(function (err) { console.error(err); });
-    });
-
-    chain.then(function () {
-      statusEl.textContent = '';
-      bar.hidden = items.length === 0;
-    });
+  function resetStage(){
+    emptyState.style.display = 'block';
+    imageFrame.style.display = 'none';
+    resultToolbar.style.display = 'none';
+    resultCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+    downloadBtn.disabled = true;
+    originalImageData = null;
   }
 
-  /* ------------------------------------------------------------------ */
-  /* events                                                              */
-  /* ------------------------------------------------------------------ */
+  openGalleryBtn.addEventListener('click', openGallery);
+  changeImageBtn.addEventListener('click', openGallery);
+  closeGalleryBtn.addEventListener('click', closeGallery);
+  resetBtn.addEventListener('click', () => {
+    resetStage();
+    closeGallery();
+  });
 
-  fileInput.addEventListener('change', function (e) {
+  dropzone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', e => {
     handleFiles(e.target.files);
-    e.target.value = '';
+    fileInput.value = '';
+  });
+  dropzone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropzone.classList.add('drag');
+  });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+  dropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropzone.classList.remove('drag');
+    handleFiles(e.dataTransfer.files);
   });
 
-  ['dragenter', 'dragover'].forEach(function (ev) {
-    dropZone.addEventListener(ev, function (e) {
-      e.preventDefault();
-      dropZone.classList.add('over');
-    });
+  let thresholdRaf = null;
+  function applyThresholdUpdate(){
+    thresholdVal.textContent = thresholdInput.value;
+    if(thresholdRaf) cancelAnimationFrame(thresholdRaf);
+    thresholdRaf = requestAnimationFrame(() => renderWithThreshold(Number(thresholdInput.value)));
+  }
+  thresholdInput.addEventListener('input', applyThresholdUpdate);
+
+  const thresholdMinus = document.getElementById('thresholdMinus');
+  const thresholdPlus = document.getElementById('thresholdPlus');
+  function stepThreshold(delta){
+    const min = Number(thresholdInput.min), max = Number(thresholdInput.max);
+    const next = Math.min(max, Math.max(min, Number(thresholdInput.value) + delta));
+    thresholdInput.value = next;
+    applyThresholdUpdate();
+  }
+  thresholdMinus.addEventListener('click', () => stepThreshold(-1));
+  thresholdPlus.addEventListener('click', () => stepThreshold(1));
+
+  downloadBtn.addEventListener('click', () => {
+    resultCanvas.toBlob(blob => {
+      if(!blob) return;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = activeName + '-nobg.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }, 'image/png');
   });
 
-  ['dragleave', 'drop'].forEach(function (ev) {
-    dropZone.addEventListener(ev, function (e) {
-      e.preventDefault();
-      dropZone.classList.remove('over');
-    });
-  });
-
-  dropZone.addEventListener('drop', function (e) {
-    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
-      handleFiles(e.dataTransfer.files);
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape'){
+      closeGallery();
     }
   });
 
-  window.addEventListener('dragover', function (e) { e.preventDefault(); });
-  window.addEventListener('drop', function (e) { e.preventDefault(); });
-
-  tolInput.addEventListener('input', function () {
-    tolVal.textContent = tolInput.value;
-    clearTimeout(tolTimer);
-    tolTimer = setTimeout(function () {
-      if (!items.length) return;
-      statusEl.textContent = 'Updating…';
-      items.forEach(function (it, i) {
-        setTimeout(function () {
-          processItem(it);
-          if (i === items.length - 1) statusEl.textContent = '';
-        }, i * 10);
-      });
-    }, 220);
-  });
-
-  downloadAll.addEventListener('click', function () {
-    var pending = items.filter(function (it) { return it.blobUrl; });
-    pending.forEach(function (it, i) {
-      setTimeout(function () {
-        triggerDownload(it.blobUrl, outName(it.name));
-      }, i * 300);
-    });
-  });
-
-})();
-</script>
-
-<!-- ============================================================== -->
-<!-- PWA: install prompt + service worker registration               -->
-<!-- ============================================================== -->
-<script>
-(function () {
-  "use strict";
-
-  var installBtn = document.getElementById('installBtn');
-  var iosHint    = document.getElementById('iosHint');
-  var iosDismiss = document.getElementById('iosDismiss');
-
-  var deferredPrompt = null;
-  var isStandalone   =
-    window.matchMedia('(display-mode: standalone)').matches ||
-    window.navigator.standalone === true;
-
-  /* ---------- detect iOS Safari ---------- */
-  var ua = window.navigator.userAgent || '';
-  var isIOS = /iPad|iPhone|iPod/.test(ua) ||
-              (ua.indexOf('Mac') > -1 && 'ontouchend' in document);
-  var isSafari = /^((?!chrome|android|crios|fxios|edgios).)*safari/i.test(ua);
-
-  /* ---------- 1. capture install prompt ---------- */
-  window.addEventListener('beforeinstallprompt', function (e) {
-    e.preventDefault();      // stop the default mini-infobar
-    deferredPrompt = e;      // save for later
-    if (!isStandalone) {
-      installBtn.hidden = false;
-    }
-  });
-
-  /* ---------- 2. trigger install on button click ---------- */
-  installBtn.addEventListener('click', function () {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-
-    deferredPrompt.userChoice.then(function (choice) {
-      console.log('Install choice:', choice.outcome);
-      deferredPrompt = null;
-      installBtn.hidden = true;
-    }).catch(function (err) {
-      console.error('Install prompt error:', err);
-    });
-  });
-
-  /* ---------- 3. hide button once installed ---------- */
-  window.addEventListener('appinstalled', function () {
-    console.log('PWA installed successfully.');
-    deferredPrompt = null;
-    installBtn.hidden = true;
-    iosHint.hidden = true;
-  });
-
-  /* ---------- 4. iOS Safari: show manual hint ---------- */
-  if (isIOS && isSafari && !isStandalone) {
-    var dismissed = false;
-    try { dismissed = localStorage.getItem('iosHintDismissed') === '1'; } catch (e) {}
-
-    if (!dismissed) {
-      iosHint.hidden = false;
-    }
-
-    iosDismiss.addEventListener('click', function () {
-      iosHint.hidden = true;
-      try { localStorage.setItem('iosHintDismissed', '1'); } catch (e) {}
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
     });
   }
-
-  /* ---------- 5. register the service worker ---------- */
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function () {
-      navigator.serviceWorker
-        .register('/localXhost/tool/bgremove/sw.js', {
-          scope: '/localXhost/tool/bgremove/'
-        })
-        .then(function (reg) { console.log('SW registered:', reg.scope); })
-        .catch(function (err) { console.error('SW registration failed:', err); });
-    });
-  }
-})();
 </script>
+
 </body>
 </html>
