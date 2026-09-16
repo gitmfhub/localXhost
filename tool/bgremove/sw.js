@@ -1,12 +1,7 @@
-/* Service Worker — BgRemove / localXhost
-   Strategy:
-   - App shell (HTML, manifest, icons): cache-first with network fallback
-   - Same-origin images / assets: stale-while-revalidate
-   - Everything else: network with cache fallback
-*/
+/* Service Worker — BgRemove-lxh / localXhost */
 
-const CACHE_VERSION = 'bgremove-v1';
-const RUNTIME_CACHE = 'bgremove-runtime-v1';
+const CACHE_VERSION = 'bgremove-lxh-v1';
+const RUNTIME_CACHE = 'bgremove-lxh-runtime-v1';
 
 const APP_SHELL = [
   './',
@@ -15,7 +10,6 @@ const APP_SHELL = [
   'https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg'
 ];
 
-/* Install: pre-cache app shell */
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_VERSION)
@@ -24,7 +18,6 @@ self.addEventListener('install', (event) => {
   );
 });
 
-/* Activate: clean old caches */
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -37,7 +30,6 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-/* Fetch: routing */
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if(req.method !== 'GET') return;
@@ -51,7 +43,6 @@ self.addEventListener('fetch', (event) => {
     url.pathname.endsWith('manifest.json')
   );
 
-  /* App shell: cache-first */
   if(isShell){
     event.respondWith(
       caches.match(req).then((cached) =>
@@ -65,7 +56,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  /* Images: stale-while-revalidate */
   if(isImage){
     event.respondWith(
       caches.match(req).then((cached) => {
@@ -82,7 +72,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  /* Everything else: network with cache fallback */
   event.respondWith(
     fetch(req).then((res) => {
       if(res && res.status === 200 && sameOrigin){
