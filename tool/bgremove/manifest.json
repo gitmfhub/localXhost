@@ -1,48 +1,27 @@
 {
   "name": "BgRemove-lxh",
   "short_name": "BgRemove-lxh",
-  "description": "Remove image backgrounds locally in your browser. One File. Full Power.",
+  "description": "Remove image backgrounds locally in your browser. Run Tools Locally — localXhost.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#0c0d10",
   "theme_color": "#0c0d10",
-  "lang": "en",
-  "dir": "ltr",
-  "categories": ["photo", "utilities", "productivity"],
   "icons": [
     {
-      "src": "https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg",
+      "src": "icon.jpg",
       "sizes": "192x192",
       "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg",
+      "src": "icon.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
-      "purpose": "any"
-    },
-    {
-      "src": "https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg",
-      "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ],
-  "shortcuts": [
-    {
-      "name": "Add Image",
-      "short_name": "Add",
-      "url": "./index.html?action=add",
-      "icons": [
-        {
-          "src": "https://gitmfhub.github.io/localXhost/tool/bgremove/icon.jpg",
-          "sizes": "192x192",
-          "type": "image/jpeg"
-        }
-      ]
-    }
-  ]
+  "categories": ["utilities", "photo", "productivity"],
+  "lang": "en"
 }
