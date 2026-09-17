@@ -34,20 +34,20 @@
     padding:0;
     width:100%;
     height:100%;
-    overflow:hidden;
+  }
+  html{
+    /* allow browser pull-to-refresh; content still locked in #stage */
+    overscroll-behavior-y: auto;
   }
   body{
     background:var(--bg);
     color:var(--text);
     font-family:var(--font);
     -webkit-tap-highlight-color:transparent;
-    position:fixed;
-    inset:0;
     width:100%;
     height:100%;
     overflow:hidden;
-    overscroll-behavior:none;
-    touch-action:manipulation;
+    position:relative;
   }
   .checker{
     background-color:#1a1c20;
