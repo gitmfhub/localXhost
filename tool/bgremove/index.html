@@ -508,47 +508,76 @@ let deferredPrompt = null;
 const pwaBanner = document.getElementById('pwaBanner');
 const pwaInstall = document.getElementById('pwaInstall');
 const pwaLater = document.getElementById('pwaLater');
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-  || window.navigator.standalone === true;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-const pwaDismissed = localStorage.getItem('pwaDismissed') === '1';
+
+function isAppInstalled(){
+  if(window.matchMedia('(display-mode: standalone)').matches) return true;
+  if(window.matchMedia('(display-mode: fullscreen)').matches) return true;
+  if(window.matchMedia('(display-mode: minimal-ui)').matches) return true;
+  if(window.navigator.standalone === true) return true;
+  if(document.referrer && document.referrer.startsWith('android-app://')) return true;
+  if(localStorage.getItem('pwaInstalled') === '1') return true;
+  return false;
+}
+
+function isPwaDismissed(){
+  return localStorage.getItem('pwaDismissed') === '1';
+}
 
 function showPwaBanner(){
-  if(isStandalone || pwaDismissed) return;
+  if(isAppInstalled() || isPwaDismissed()) return;
   pwaBanner.classList.add('show');
 }
 function hidePwaBanner(){ pwaBanner.classList.remove('show'); }
 
+/* Only show when browser says the app can be installed (not already installed) */
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
+  if(isAppInstalled()) return;
   deferredPrompt = e;
   showPwaBanner();
 });
+
 pwaInstall.addEventListener('click', async () => {
-  if(deferredPrompt){
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    deferredPrompt = null;
+  if(isAppInstalled()){
     hidePwaBanner();
     return;
   }
-  if(isIOS && isSafari) showToast('Tap Share ⤴ then "Add to Home Screen"');
-  else showToast('Use your browser menu → Install app');
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    hidePwaBanner();
+    if(choice && choice.outcome === 'accepted'){
+      localStorage.setItem('pwaInstalled', '1');
+    }
+    return;
+  }
+  if(isIOS && isSafari && !isAppInstalled()){
+    showToast('Tap Share ⤴ then "Add to Home Screen"');
+  }
   hidePwaBanner();
 });
+
 pwaLater.addEventListener('click', () => {
   hidePwaBanner();
   localStorage.setItem('pwaDismissed', '1');
 });
+
 window.addEventListener('appinstalled', () => {
+  localStorage.setItem('pwaInstalled', '1');
   hidePwaBanner();
   deferredPrompt = null;
   showToast('App installed ✓');
 });
+
+/* iOS Safari only: soft hint if not installed and not dismissed (no beforeinstallprompt there) */
 setTimeout(() => {
-  if(!isStandalone && !pwaDismissed && !deferredPrompt) showPwaBanner();
-}, 3500);
+  if(isAppInstalled() || isPwaDismissed() || deferredPrompt) return;
+  if(isIOS && isSafari) showPwaBanner();
+}, 4000);
+
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});
