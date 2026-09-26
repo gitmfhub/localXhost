@@ -1,21 +1,49 @@
 {
-  "name": "localXhost",
+  "name": "localXhost Desktop",
   "short_name": "localXhost",
-  "start_url": "/",
+  "description": "واجهة PC تفاعلية تحاكي سطح المكتب مع Termux والمتصفح",
+  "start_url": "/localXhost/index.html",
+  "scope": "/localXhost/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
-  "orientation": "portrait",
+  "display_override": ["window-controls-overlay", "standalone", "fullscreen"],
+  "orientation": "any",
+  "background_color": "#05070a",
+  "theme_color": "#05070a",
+  "lang": "ar",
+  "dir": "rtl",
+  "categories": ["productivity", "utilities"],
   "icons": [
     {
       "src": "https://gitmfhub.github.io/localXhost/asset/images/localxhost1-1.jpg",
       "sizes": "192x192",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any"
     },
     {
       "src": "https://gitmfhub.github.io/localXhost/asset/images/localxhost1-1.jpg",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "https://gitmfhub.github.io/localXhost/asset/images/localxhost1-1.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "فتح Termux",
+      "short_name": "Termux",
+      "url": "/localXhost/index.html?app=terminal",
+      "icons": [{ "src": "https://gitmfhub.github.io/localXhost/asset/images/localxhost1-1.jpg", "sizes": "192x192" }]
+    },
+    {
+      "name": "فتح المتصفح",
+      "short_name": "Browser",
+      "url": "/localXhost/index.html?app=browser",
+      "icons": [{ "src": "https://gitmfhub.github.io/localXhost/asset/images/localxhost1-1.jpg", "sizes": "192x192" }]
     }
   ]
 }
